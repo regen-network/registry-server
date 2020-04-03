@@ -14,12 +14,12 @@ module.exports = {
       script: 'docker-compose up',
       cwd: 'server/',
       log: true
-    },
-    {
-      name: 'web',
-      script: 'yarn start',
-      cwd: 'web/',
-      log: true
+    // },
+    // {
+    //   name: 'web',
+    //   script: 'yarn start',
+    //   cwd: 'web/',
+    //   log: true
     }
   ],
   deploy: {}

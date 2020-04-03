@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION private.create_app_user_if_needed(role text)
+CREATE OR REPLACE FUNCTION public.create_app_user_if_needed(role text)
 returns void as $$
 begin
   IF NOT EXISTS (
@@ -16,7 +16,7 @@ CREATE OR REPLACE FUNCTION public.get_current_user() RETURNS TEXT AS $$
 $$ LANGUAGE SQL STABLE;
 
 -- Test cases:
--- select private.create_app_user_if_needed('test1');
+-- select public.create_app_user_if_needed('test1');
 -- set role test1;
 -- set role postgres;
 -- drop role test1;
