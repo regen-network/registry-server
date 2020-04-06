@@ -1,7 +1,7 @@
 create function public.really_create_user(
   email text,
   name text,
-  avatar_url text
+  avatar text
 --   password text default null
 ) returns "user" as $$
 declare
@@ -21,9 +21,9 @@ begin
 
   -- Insert the new user
   insert into "user"
-    (email, name, avatar_url, party_id)
+    (email, name, avatar, party_id)
   values
-    (email, name, avatar_url, v_party.id)
+    (email, name, avatar, v_party.id)
   returning * into v_user;
 
   -- Refresh the user

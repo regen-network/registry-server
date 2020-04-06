@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.create_app_user_if_needed(role text)
+CREATE OR REPLACE FUNCTION private.create_app_user_if_needed(role text)
 returns void as $$
 begin
   IF NOT EXISTS (

@@ -1,6 +1,3 @@
---! Previous: sha1:2456e6fa5f0a889aada30de1b74526026ccf2ca9
---! Hash: sha1:7ce3500d6b21b3ad749edda9a178d9cc9453772b
-
 CREATE TYPE project_state AS ENUM
 (
   'proposed',
@@ -27,6 +24,13 @@ CREATE TABLE party
   -- "stripe_token" text
 );
 
+grant
+  select,
+  insert,
+  update,
+  delete
+on party to app_user;
+
 CREATE TABLE wallet
 (
     "id" uuid PRIMARY KEY DEFAULT uuid_generate_v1(),
@@ -37,8 +41,8 @@ CREATE TABLE wallet
 
 grant
   select,
-  insert (updated_at, addr),
-  update (updated_at, addr),
+  insert,
+  update,
   delete
 on wallet to app_user;
 
@@ -55,8 +59,8 @@ CREATE TABLE account_balance
 
 grant
   select,
-  insert (updated_at, credit_vintage_id, wallet_id, liquid_balance, burnt_balance),
-  update (updated_at, credit_vintage_id, wallet_id, liquid_balance, burnt_balance),
+  insert,
+  update,
   delete
 on account_balance to app_user;
 
@@ -75,8 +79,8 @@ CREATE TABLE "user" (
 
 grant
   select,
-  insert (updated_at, type, email, name, avatar, wallet_id),
-  update (updated_at, type, email, name, avatar, wallet_id),
+  insert,
+  update,
   delete
 on "user" to app_user;
 
@@ -95,8 +99,8 @@ CREATE TABLE organization (
 
 grant
   select,
-  insert (updated_at, type, name, logo, website, wallet_id),
-  update (updated_at, type, name, logo, website, wallet_id),
+  insert,
+  update,
   delete
 on organization to app_user;
 
@@ -125,8 +129,8 @@ CREATE TABLE methodology
 
 grant
   select,
-  insert (updated_at, author_id),
-  update (updated_at, author_id),
+  insert,
+  update,
   delete
 on methodology to app_user;
 
@@ -149,8 +153,8 @@ CREATE TABLE methodology_version
 
 grant
   select,
-  insert (name, version, date_developed, description, boundary, metadata, files),
-  update (name, version, date_developed, description, boundary, metadata, files),
+  insert,
+  update,
   delete
 on methodology_version to app_user;
 
@@ -165,8 +169,8 @@ CREATE TABLE credit_class
 
 grant
   select,
-  insert (updated_at, designer_id, methodology_id),
-  update (updated_at, designer_id, methodology_id),
+  insert,
+  update,
   delete
 on credit_class to app_user;
 
@@ -187,8 +191,8 @@ CREATE TABLE credit_class_version
 
 grant
   select,
-  insert (name, version, date_developed, description, state_machine, metadata),
-  update (name, version, date_developed, description, state_machine, metadata),
+  insert,
+  update,
   delete
 on credit_class_version to app_user;
 
@@ -202,8 +206,8 @@ CREATE TABLE credit_class_issuer
 
 grant
   select,
-  insert (updated_at, credit_class_id, issuer_id),
-  update (updated_at, credit_class_id, issuer_id),
+  insert,
+  update,
   delete
 on credit_class_issuer to app_user;
 
@@ -220,8 +224,8 @@ CREATE TABLE credit_vintage
 
 grant
   select,
-  insert (credit_class_id, project_id, issuer_id, units, initial_distribution),
-  update (credit_class_id, project_id, issuer_id, units, initial_distribution),
+  insert,
+  update,
   delete
 on credit_vintage to app_user;
 
@@ -259,8 +263,8 @@ CREATE TABLE project
 
 grant
   select,
-  insert (updated_at, developer_id, steward_id, land_owner_id, credit_class_id, name, location, application_date, start_date, end_date, summary_description, long_description, photos, documents, area, area_unit, state, last_event_index, impact, metadata, registry_id),
-  update (updated_at, developer_id, steward_id, land_owner_id, credit_class_id, name, location, application_date, start_date, end_date, summary_description, long_description, photos, documents, area, area_unit, state, last_event_index, impact, metadata, registry_id),
+  insert,
+  update,
   delete
 on project to app_user;
 
@@ -274,8 +278,8 @@ CREATE TABLE mrv
 
 grant
   select,
-  insert (updated_at, project_id),
-  update (updated_at, project_id),
+  insert,
+  update,
   delete
 on mrv to app_user;
 
@@ -289,8 +293,8 @@ CREATE TABLE registry
 
 grant
   select,
-  insert (updated_at, name),
-  update (updated_at, name),
+  insert,
+  update,
   delete
 on registry to app_user;
 
@@ -307,6 +311,13 @@ CREATE TABLE event
   "to_state" project_state
 );
 
+grant
+  select,
+  insert,
+  update,
+  delete
+on event to app_user;
+
 ALTER TABLE account_balance ADD FOREIGN KEY ("credit_vintage_id") REFERENCES credit_vintage ("id");
 
 ALTER TABLE account_balance ADD FOREIGN KEY ("wallet_id") REFERENCES wallet ("id");
@@ -321,8 +332,6 @@ FOREIGN KEY
 ALTER TABLE "user" ADD FOREIGN KEY ("wallet_id") REFERENCES wallet ("id");
 
 ALTER TABLE organization ADD FOREIGN KEY ("party_id") REFERENCES party ("id");
-
---ALTER TABLE organization ADD FOREIGN KEY ("type") REFERENCES party ("type");
 
 ALTER TABLE organization ADD FOREIGN KEY ("wallet_id") REFERENCES wallet ("id");
 
@@ -404,13 +413,3 @@ CREATE INDEX ON project
 ("registry_id");
 
 --CREATE UNIQUE INDEX ON party ("id", "type");
-
---COMMENT ON COLUMN "methodology_version"."metadata" IS 'eco-regions, practices/outcomes measures...';
-
---COMMENT ON COLUMN "credit_class_version"."metadata" IS 'eco metrics, price';
-
---COMMENT ON COLUMN "credit_vintage"."initial_distribution" IS 'breakdown of ownership of credits';
-
---COMMENT ON COLUMN project."land_owner_id" IS 'constraint check_project check (developer_id is not null or owner_id is not null or steward_id is not null)';
-
---COMMENT ON COLUMN project."metadata" IS 'land mgmt actions, key activities/outcomes, protected species...';

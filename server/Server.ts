@@ -91,13 +91,6 @@ app.post('/api/login', (req, res) => {
   } else res.sendStatus(200);
 });
 
-// app.post('/api/credits/issue', (req, res) => {
-//   console.log(req)
-//   pgPool.connect((err, client, release) => {
-
-//   });
-// });
-
 app.use(postgraphile(pgPool, 'public', {
   graphiql: true,
   watchPg: true,
@@ -111,7 +104,7 @@ app.use(postgraphile(pgPool, 'public', {
       //   settings['jwt.claims.' + k] = user[k]
       // );
       return settings;
-    } else return { role: 'guest' };
+    } else return { role: 'app_user' };
    }
 }));
 
