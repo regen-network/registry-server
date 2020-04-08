@@ -251,11 +251,8 @@ CREATE TABLE project
   "area_unit" char(10) NOT NULL,
   "state" project_state NOT NULL,
   "last_event_index" integer,
-  --"_land_mgmt_actions" jsonb,
-  --"_key_activities" jsonb,
-  --"_protected_species" jsonb,
   "impact" jsonb,
-  "metadata" jsonb,
+  "metadata" jsonb, -- fields_override, presale_url, land_mgmt_actions, key_activities, protected_species
   "registry_id" uuid,
   constraint check_project check
     ("developer_id" is not null or "land_owner_id" is not null or "steward_id" is not null)
