@@ -1,4 +1,4 @@
-create function public.really_create_user(
+create or replace function public.really_create_user(
   email text,
   name text,
   avatar text

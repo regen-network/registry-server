@@ -1,4 +1,4 @@
-create function public.really_create_organization(
+create or replace function public.really_create_organization(
   name text,
   wallet_addr bytea,
   owner_id uuid

@@ -1,37 +1,4 @@
-
-drop function if exists issue_credits;
-drop function if exists get_party_wallet_id;
-
-create function get_party_wallet_id(
-  v_party_id uuid
-) returns uuid as $$
-declare
-  v_party party;
-  v_wallet_id uuid;
-begin
-  select *
-  into v_party
-  from party
-  where id = v_party_id;
-
-  if v_party.type = 'user' then
-    select wallet_id
-    into v_wallet_id
-    from "user"
-    where party_id = v_party.id;
-  else
-    select wallet_id
-    into v_wallet_id
-    from "organization"
-    where party_id = v_party.id;
-  end if;
-  return v_wallet_id;
-end;
-$$ language plpgsql strict volatile
-set search_path
-to pg_catalog, public, pg_temp;
-
-create function issue_credits(
+create or replace function issue_credits(
   project_id uuid,
   issuer_party_id uuid,
   units integer,
@@ -60,7 +27,7 @@ begin
   where id = project_id;
 
   if v_project.id is null then
-      raise exception 'Project not found' using errcode = 'NTFND';
+    raise exception 'Project not found' using errcode = 'NTFND';
   end if;
 
   -- get issuer's wallet id
@@ -71,7 +38,7 @@ begin
   -- into v_party
   -- from party
   -- where id = issuer_party_id;
-  
+
   -- if v_party.type = 'user' then
   --   select wallet_id
   --   into v_issuer_wallet_id
@@ -85,9 +52,8 @@ begin
   -- end if;
 
   if v_issuer_wallet_id is null then
-      raise exception 'Wallet is required' using errcode = 'NTFND';
-  end
-  if;
+    raise exception 'Issuer must have a wallet' using errcode = 'NTFND';
+  end if;
 
   -- verify current user is allowed to issue credits for this credit class
   select issuer_id
@@ -96,7 +62,7 @@ begin
   where credit_class_id = v_project.credit_class_id and issuer_id = v_issuer_wallet_id;
 
   if v_credit_class_issuer_id is null then
-      raise exception 'User not allowed to issue credits for this project' using errcode = 'DNIED';
+    raise exception 'User not allowed to issue credits for this project' using errcode = 'DNIED';
   end if;
 
   -- verify sum initial_distribution values = 1
@@ -105,7 +71,7 @@ begin
   from jsonb_each_text(initial_distribution);
 
   if v_sum != 1 then
-    raise exception 'Sum of ownership breakdown not equal to 1' using errcode = 'DNIED';
+    raise exception 'Sum of ownership breakdown not equal to 100' using errcode = 'DNIED';
   end if;
 
   -- create credit vintage
@@ -125,7 +91,6 @@ begin
         if v_project.developer_id is null then
           raise exception 'Project does not have any project developer' using errcode = 'NTFND';
         end if;
-        -- v_issuee_id := v_project.developer_id;
         select get_party_wallet_id(v_project.developer_id) into v_issuee_id;
       end if;
 
@@ -133,7 +98,6 @@ begin
         if v_project.land_owner_id is null then
           raise exception 'Project does not have any land owner' using errcode = 'NTFND';
         end if;
-        v_issuee_id := v_project.land_owner_id;
         select get_party_wallet_id(v_project.land_owner_id) into v_issuee_id;
       end if;
 
@@ -141,7 +105,6 @@ begin
         if v_project.steward_id is null then
           raise exception 'Project does not have any land steward' using errcode = 'NTFND';
         end if;
-        -- v_issuee_id := v_project.steward_id;
         select get_party_wallet_id(v_project.steward_id) into v_issuee_id;
       end if;
 

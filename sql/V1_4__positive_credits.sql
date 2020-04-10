@@ -1,0 +1,1 @@
+alter table credit_vintage add constraint units check (units > 0);
