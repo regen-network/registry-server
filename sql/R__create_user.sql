@@ -1,7 +1,8 @@
-create or replace function public.really_create_user(
+create or replace function private.really_create_user(
   email text,
   name text,
-  avatar text
+  avatar text,
+  auth0_sub text
 --   password text default null
 ) returns "user" as $$
 declare
@@ -21,9 +22,9 @@ begin
 
   -- Insert the new user
   insert into "user"
-    (email, name, avatar, party_id)
+    (email, name, avatar, auth0_sub, party_id)
   values
-    (email, name, avatar, v_party.id)
+    (email, name, avatar, auth0_sub, v_party.id)
   returning * into v_user;
 
   -- Refresh the user

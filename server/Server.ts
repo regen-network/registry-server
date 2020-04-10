@@ -15,11 +15,13 @@ import * as unzipper from 'unzipper';
 //import * as fs from 'fs';
 import * as etl from 'etl';
 import { Readable } from 'stream';
+import * as bodyParser from 'body-parser';
 
 const app = express();
 
 app.use(fileUpload());
 app.use(cors());
+app.use(bodyParser.json());
 
 // app.use('/.storybook/', express.static(path.join(__dirname, '../web/build/storybook')));
 // app.get('/.storybook/*', function (req, res) {
@@ -36,11 +38,11 @@ app.use(jwt({
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: "https://regen-network.auth0.com/.well-known/jwks.json"
+    jwksUri: "https://regen-network-registry.auth0.com/.well-known/jwks.json"
   }),
   credentialsRequired: false,
-  audience: 'https://app.regen.network/graphql',
-  issuer: "https://regen-network.auth0.com/",
+  audience: 'https://regen-registry-server.herokuapp.com/',
+  issuer: "https://regen-network-registry.auth0.com/",
   algorithms: ['RS256']
 }));
 
@@ -77,18 +79,39 @@ app.post('/api/login', (req, res) => {
   if(req.user && req.user.sub) {
     const sub = req.user.sub;
     pgPool.connect((err, client, release) => {
-      if(err) {
+      if (err) {
         res.sendStatus(500);
         console.error('Error acquiring postgres client', err.stack);
-      } else client.query('SELECT private.create_app_user_if_needed($1)', [sub], (err, qres) => {
-        release();
-        if(err) {
-          res.sendStatus(500);
-          console.error('Error creating role', err.stack);
-        } else res.sendStatus(200);
-      });
+      } else {
+        client.query('SELECT private.create_app_user_if_needed($1)', [sub], (err, qres) => {
+          if (err) {
+            res.sendStatus(500);
+            console.error('Error creating role', err.stack);
+          } else {
+            // create user and associated party if new sign up
+            if (req.body && req.body['https://regen-registry.com/signup'] === true) {
+              client.query('SELECT private.really_create_user($1, $2, $3, $4)',
+                [req.body.email, req.body.nickname, req.body.picture, sub],
+                (err, qres) => {
+                  release();
+                  if (err) {
+                    res.sendStatus(500);
+                    console.error('Error creating user', err.stack);
+                  } else {
+                    res.sendStatus(200);
+                  }
+              });
+            } else {
+              release();
+              res.sendStatus(200);
+            }
+          }
+        });
+      }
     });
-  } else res.sendStatus(200);
+  } else {
+    res.sendStatus(200);
+  }
 });
 
 app.use(postgraphile(pgPool, 'public', {
@@ -96,6 +119,8 @@ app.use(postgraphile(pgPool, 'public', {
   watchPg: true,
   dynamicJson: true,
   pgSettings: (req) => {
+    console.log(req)
+
     if(req.user && req.user.sub) {
       const { sub, ...user } = req.user;
       const settings = { role: sub };
