@@ -13,17 +13,16 @@ begin
   where id = v_party_id;
 
   if v_party.type = 'user' then
-  select wallet_id
-  into v_wallet_id
-  from "user"
-  where party_id = v_party.id;
+    select wallet_id
+    into v_wallet_id
+    from "user"
+    where party_id = v_party.id;
   else
-  select wallet_id
-  into v_wallet_id
-  from "organization"
-  where party_id = v_party.id;
-end
-if;
+    select wallet_id
+    into v_wallet_id
+    from "organization"
+    where party_id = v_party.id;
+  end if;
   return v_wallet_id;
 end;
 $$ language plpgsql strict volatile

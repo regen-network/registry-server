@@ -88,23 +88,18 @@ app.post('/api/login', (req, res) => {
             res.sendStatus(500);
             console.error('Error creating role', err.stack);
           } else {
-            // create user and associated party if new sign up
-            if (req.body && req.body['https://regen-registry.com/signup'] === true) {
-              client.query('SELECT private.really_create_user($1, $2, $3, $4)',
-                [req.body.email, req.body.nickname, req.body.picture, sub],
-                (err, qres) => {
-                  release();
-                  if (err) {
-                    res.sendStatus(500);
-                    console.error('Error creating user', err.stack);
-                  } else {
-                    res.sendStatus(200);
-                  }
-              });
-            } else {
-              release();
-              res.sendStatus(200);
-            }
+            // create user and associated party if needed
+            client.query('SELECT private.really_create_user_if_needed($1, $2, $3, $4)',
+              [req.body.email, req.body.nickname, req.body.picture, sub],
+              (err, qres) => {
+                release();
+                if (err) {
+                  res.sendStatus(500);
+                  console.error('Error creating user', err.stack);
+                } else {
+                  res.sendStatus(200);
+                }
+            });
           }
         });
       }
