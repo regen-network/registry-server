@@ -17,7 +17,7 @@
     "libsodium-wrappers": "^0.7.3",
     "pg": "8.0.0",
     "postgraphile": "4.6.0",
-    "ts-node": "4.1.0",
+    "ts-node": "8.8.2",
     "typescript": "3.8.3",
     "unzipper": "^0.9.4",
     "xmldom": "^0.1.27"

@@ -16,6 +16,7 @@ import * as unzipper from 'unzipper';
 import * as etl from 'etl';
 import { Readable } from 'stream';
 import * as bodyParser from 'body-parser';
+import { UserRequest, UserIncomingMessage } from './types';
 
 const app = express();
 
@@ -74,7 +75,7 @@ pgPool.connect((err, client, release) => {
   }
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user
   if(req.user && req.user.sub) {
     const sub = req.user.sub;
@@ -113,9 +114,7 @@ app.use(postgraphile(pgPool, 'public', {
   graphiql: true,
   watchPg: true,
   dynamicJson: true,
-  pgSettings: (req) => {
-    console.log(req)
-
+  pgSettings: (req: UserIncomingMessage) => {
     if(req.user && req.user.sub) {
       const { sub, ...user } = req.user;
       const settings = { role: sub };
