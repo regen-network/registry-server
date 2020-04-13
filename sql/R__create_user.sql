@@ -44,27 +44,40 @@ create or replace function private.really_create_user_if_needed(
   sub text
 ) returns "user" as $$
 declare
-  v_user_id uuid;
+  v_db_user "user";
+  v_auth_user_id uuid;
+  v_email text;
   v_user "user";
 begin
-  select id
-  into v_user_id
-  from "user"
-  where auth0_sub = sub; -- or email = email?
+  v_email := email;
 
-  -- no user yet with this auth0 sub, create it
-  if v_user_id is null then
-    select *
-    into v_user
-    from private.really_create_user(email, name, avatar, sub);
-  -- user already exists, update its auth0 sub
-  -- else
-  --   update "user" set auth0_sub = sub where id = v_user.id;
-  --   -- Refresh the user
-  --   select *
-  --   into v_user
-  --   from "user"
-  --   where id = v_user.id;
+  select *
+  into v_db_user
+  from "user" u
+  where u.email = v_email;
+
+  select id
+  into v_auth_user_id
+  from "user"
+  where auth0_sub = sub;
+
+  if v_db_user.id is not null then
+    -- if user already exists but has no auth0_sub yet, update its auth0 sub
+    -- (eg pre-created users from pilot projects)
+    if v_db_user.auth0_sub is null then
+      update "user" set auth0_sub = sub
+      where id = v_db_user.id
+      returning * into v_user;
+    else
+      v_user := v_db_user;
+    end if;
+  else
+    -- if no user yet with this auth0 sub, create it
+    if v_auth_user_id is null then
+      select *
+      into v_user
+      from private.really_create_user(email, name, avatar, sub);
+    end if;
   end if;
 
   return v_user;
