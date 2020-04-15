@@ -18,18 +18,15 @@ CREATE TABLE party
   "id" uuid PRIMARY KEY DEFAULT uuid_generate_v1(),
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
-  "type" party_type NOT NULL check("type" in ('user', 'organization')),
-  "address" geometry,
-  "short_description" char(130)
+  "type" party_type NOT NULL check("type" in ('user', 'organization'))
   -- "stripe_token" text
 );
 
 grant
-  select,
-  insert,
-  update,
-  delete
+  select
 on party to app_user;
+
+-- insert handled separately in private.really_create_user/really_create_org
 
 CREATE TABLE wallet
 (
@@ -38,13 +35,6 @@ CREATE TABLE wallet
     "updated_at" timestamptz NOT NULL DEFAULT now(),
     "addr" bytea NOT NULL
 );
-
-grant
-  select,
-  insert,
-  update,
-  delete
-on wallet to app_user;
 
 CREATE TABLE account_balance
 (
@@ -60,9 +50,10 @@ CREATE TABLE account_balance
 grant
   select,
   insert,
-  update,
-  delete
+  update
 on account_balance to app_user;
+
+-- insert, update and delete handled separately (resp. issue_credits, transfer/retire_credits)
 
 CREATE TABLE "user" (
   "id" uuid PRIMARY KEY DEFAULT uuid_generate_v1(),
@@ -74,15 +65,16 @@ CREATE TABLE "user" (
   "avatar" text,
   "wallet_id" uuid,
   "party_id" uuid NOT NULL,
+  "address" geometry,
   UNIQUE ("party_id", "type")
 );
 
 grant
   select,
-  insert,
-  update,
-  delete
+  update
 on "user" to app_user;
+
+-- insert handled separately in private.really_create_user/really_create_org
 
 CREATE TABLE organization (
   "id" uuid PRIMARY KEY DEFAULT uuid_generate_v1(),
@@ -94,28 +86,30 @@ CREATE TABLE organization (
   "website" text,
   "wallet_id" uuid NOT NULL,
   "party_id" uuid NOT NULL,
+  "address" geometry,
   UNIQUE ("party_id", "type")
 );
 
 grant
   select,
-  insert,
-  update,
-  delete
+  update
 on organization to app_user;
+
+-- insert handled separately in private.really_create_user/really_create_org
 
 CREATE TABLE organization_member (
   "created_at" timestamptz NOT NULL DEFAULT now(),
   "updated_at" timestamptz NOT NULL DEFAULT now(),
   "member_id" uuid NOT NULL,
   "organization_id" uuid NOT NULL,
-  "is_owner" boolean NOT NULL DEFAULT false
+  "is_owner" boolean NOT NULL DEFAULT false,
+  primary key (member_id, organization_id)
 );
 
 grant
   select,
-  insert (updated_at, member_id, organization_id, is_owner),
-  update (updated_at, member_id, organization_id, is_owner),
+  insert,
+  update,
   delete
 on organization_member to app_user;
 
@@ -128,10 +122,7 @@ CREATE TABLE methodology
 );
 
 grant
-  select,
-  insert,
-  update,
-  delete
+  select
 on methodology to app_user;
 
 CREATE TABLE methodology_version
@@ -152,10 +143,7 @@ CREATE TABLE methodology_version
 );
 
 grant
-  select,
-  insert,
-  update,
-  delete
+  select
 on methodology_version to app_user;
 
 CREATE TABLE credit_class
@@ -168,10 +156,7 @@ CREATE TABLE credit_class
 );
 
 grant
-  select,
-  insert,
-  update,
-  delete
+  select
 on credit_class to app_user;
 
 CREATE TABLE credit_class_version
@@ -190,10 +175,7 @@ CREATE TABLE credit_class_version
 );
 
 grant
-  select,
-  insert,
-  update,
-  delete
+  select
 on credit_class_version to app_user;
 
 CREATE TABLE credit_class_issuer
@@ -204,12 +186,7 @@ CREATE TABLE credit_class_issuer
   "issuer_id" uuid NOT NULL
 );
 
-grant
-  select,
-  insert,
-  update,
-  delete
-on credit_class_issuer to app_user;
+grant select on credit_class_issuer to app_user;
 
 CREATE TABLE credit_vintage
 (
@@ -224,10 +201,9 @@ CREATE TABLE credit_vintage
 
 grant
   select,
-  insert,
-  update,
-  delete
+  insert
 on credit_vintage to app_user;
+-- insert, update and delete handled separately (eg issue_credits)
 
 CREATE TABLE project
 (
@@ -273,27 +249,13 @@ CREATE TABLE mrv
   "project_id" uuid
 );
 
-grant
-  select,
-  insert,
-  update,
-  delete
-on mrv to app_user;
-
 CREATE TABLE registry
 (
-    "id" uuid PRIMARY KEY DEFAULT uuid_generate_v1(),
-    "created_at" timestamptz NOT NULL DEFAULT now(),
-    "updated_at" timestamptz NOT NULL DEFAULT now(),
-    "name" text NOT NULL
+  "id" uuid PRIMARY KEY DEFAULT uuid_generate_v1(),
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now(),
+  "name" text NOT NULL
 );
-
-grant
-  select,
-  insert,
-  update,
-  delete
-on registry to app_user;
 
 CREATE TABLE event
 (
@@ -311,8 +273,7 @@ CREATE TABLE event
 grant
   select,
   insert,
-  update,
-  delete
+  update
 on event to app_user;
 
 ALTER TABLE account_balance ADD FOREIGN KEY ("credit_vintage_id") REFERENCES credit_vintage ("id");
@@ -408,5 +369,6 @@ CREATE INDEX ON "user"
 ("wallet_id");
 CREATE INDEX ON project
 ("registry_id");
-
+create index on organization_member
+("member_id");
 --CREATE UNIQUE INDEX ON party ("id", "type");

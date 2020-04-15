@@ -3,6 +3,7 @@ import * as path from 'path';
 import { Pool, Client } from 'pg';
 import { parse as parsePgConnectionString } from 'pg-connection-string';
 import { postgraphile } from 'postgraphile';
+import * as PgManyToManyPlugin from '@graphile-contrib/pg-many-to-many';
 import * as jwks from 'jwks-rsa';
 import * as jwt from 'express-jwt';
 import * as childProcess from 'child_process';
@@ -114,6 +115,7 @@ app.use(postgraphile(pgPool, 'public', {
   graphiql: true,
   watchPg: true,
   dynamicJson: true,
+  appendPlugins: [PgManyToManyPlugin],
   pgSettings: (req: UserIncomingMessage) => {
     if(req.user && req.user.sub) {
       const { sub, ...user } = req.user;

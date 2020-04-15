@@ -1,11 +1,11 @@
 create or replace function issue_credits(
   project_id uuid,
-  issuer_party_id uuid,
   units integer,
   initial_distribution jsonb
 ) returns credit_vintage as $$
 declare
-  -- v_credit_class_id uuid;
+  v_issuer "user";
+  v_issuer_organization organization;
   v_issuer_wallet_id uuid;
   v_credit_class_issuer_id uuid;
   v_issuee_id uuid;
@@ -16,9 +16,34 @@ declare
   v_value numeric;
   v_sum numeric;
 begin
-  -- if current_user_id() is null then
-  --   raise exception 'You must log in to issue credits' using errcode = 'LOGIN';
-  -- end if;
+  if public.get_current_user() is null then
+    raise exception 'You must log in to issue credits' using errcode = 'LOGIN';
+  end if;
+
+  -- find user
+  select *
+  into v_issuer
+  from "user"
+  where auth0_sub = public.get_current_user();
+
+  if v_issuer.id is null then
+    raise exception 'User not found' using errcode = 'NTFND';
+  end if;
+
+  if v_issuer.is_admin is false then
+    raise exception 'Only admin users can issue credits' using errcode = 'DNIED';
+  end if;
+
+  -- find org the current user is member of (take first one for now as it always be Regen Network)
+  select organization.*
+  into v_issuer_organization
+  from organization
+  inner join organization_member on organization_member.organization_id = organization.id
+  where organization_member.member_id = v_issuer.id;
+
+  if v_issuer_organization.party_id is null then
+    raise exception 'User should be part of an organization to issue credits in the name of this organization' using errcode = 'DNIED';
+  end if;
 
   -- find project
   select *
@@ -31,25 +56,8 @@ begin
   end if;
 
   -- get issuer's wallet id
-  select get_party_wallet_id(issuer_party_id)
+  select get_party_wallet_id(v_issuer_organization.party_id)
   into v_issuer_wallet_id;
-
-  -- select *
-  -- into v_party
-  -- from party
-  -- where id = issuer_party_id;
-
-  -- if v_party.type = 'user' then
-  --   select wallet_id
-  --   into v_issuer_wallet_id
-  --   from "user"
-  --   where party_id = v_party.id;
-  -- else
-  --   select wallet_id
-  --   into v_issuer_wallet_id
-  --   from "organization"
-  --   where party_id = v_party.id;
-  -- end if;
 
   if v_issuer_wallet_id is null then
     raise exception 'Issuer must have a wallet' using errcode = 'NTFND';

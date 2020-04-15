@@ -1,4 +1,4 @@
-create or replace function public.really_create_organization(
+create or replace function private.really_create_organization(
   name text,
   wallet_addr bytea,
   owner_id uuid
@@ -28,7 +28,7 @@ begin
   values
     (name, v_wallet.id, v_party.id)
   returning * into v_org;
-  
+
   -- Add first member (owner)
   insert into organization_member
     (member_id, organization_id, is_owner)

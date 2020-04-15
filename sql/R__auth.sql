@@ -11,13 +11,9 @@ begin
 end;
 $$ language plpgsql;
 
-CREATE OR REPLACE FUNCTION public.get_current_user() RETURNS TEXT AS $$
-  SELECT current_user::text;
-$$ LANGUAGE SQL STABLE;
 
 -- Test cases:
 -- select public.create_app_user_if_needed('test1');
 -- set role test1;
 -- set role postgres;
 -- drop role test1;
-

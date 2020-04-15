@@ -1,4 +1,3 @@
-
 create or replace function get_party_wallet_id
 (
   v_party_id uuid
