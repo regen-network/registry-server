@@ -13,7 +13,8 @@
     "dev": "pm2 start pm2.config.js && pm2 monit",
     "restart": "pm2 restart all",
     "stop": "pm2 stop all",
-    "test": "echo 'No tests yet'"
+    "test": "echo 'No tests yet'",
+    "migrate": "node_modules/.bin/flyway migrate"
   },
   "devDependencies": {
     "pm2": "^3.0.3"
