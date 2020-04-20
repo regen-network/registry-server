@@ -52,30 +52,6 @@ const pgPool = new Pool(
   parsePgConnectionString(
     process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn'));
 
-// pgPool.connect((err, client, release) => {
-//   if(err)
-//     return;
-//   release();
-//   try {
-//     console.log("Calling Flyway")
-//     const host = process.env.POSTGRES_HOST || 'localhost';
-//     const port = process.env.POSTGRES_PORT || '5432';
-//     const db = process.env.POSTGRES_DATABASE || 'xrn';
-//     const user = process.env.POSTGRES_USER || 'postgres';
-//     const password = process.env.POSTGRES_PASSWORD || '';
-//     const flywayBin = path.join(__dirname, "../node_modules/.bin/flyway");
-//     const flywayCmd =
-//       `${flywayBin} migrate -url="jdbc:postgresql://${host}:${port}/${db}" -user=${user} -password=${password}`;
-//     childProcess.exec(flywayCmd, {}, (err, stdout, stderr) => {
-//       if(err) console.error(err);
-//       if(stderr) console.error(stderr);
-//       console.log(stdout);
-//     });
-//   } catch(e) {
-//     console.error(e);
-//   }
-// });
-
 app.post('/api/login', (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user
   if(req.user && req.user.sub) {
