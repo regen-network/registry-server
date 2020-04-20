@@ -22,9 +22,9 @@ begin
 
   -- Insert the new user
   insert into "user"
-    (email, name, avatar, auth0_sub, party_id)
+    (email, name, avatar, auth0_sub, party_id, is_admin)
   values
-    (email, name, avatar, auth0_sub, v_party.id)
+    (email, name, avatar, auth0_sub, v_party.id, email like '%@regen.network')
   returning * into v_user;
 
   -- Refresh the user
