@@ -969,9 +969,9 @@
     debug "^4.1.1"
 
 "@tootallnate/once@1":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.0.0.tgz#9c13c2574c92d4503b005feca8f2e16cc1611506"
-  integrity sha512-KYyTT/T6ALPkIRd2Ge080X/BsXvy9O0hcWTtMWkPvwAwF99+vn6Dv4GzrFT/Nn1LePr+FFDbRXXlqmsy9lw2zA==
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
+  integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
 "@types/events@*":
   version "3.0.0"
@@ -3987,10 +3987,10 @@ node-fetch@^2.3.0, node-fetch@^2.5.0:
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
   integrity sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==
 
-node-flywaydb@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/node-flywaydb/-/node-flywaydb-3.0.0.tgz#befdd22c5794aee71719202c00b0b673eccaad5a"
-  integrity sha512-maQjSDtLbvFmscArFnbn+FsrK5vbxugpVY8akj9uOxxziBPBDH5+fOe58nR+KIHb318maU9h+7Kyt5OxLB+BpA==
+node-flywaydb@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/node-flywaydb/-/node-flywaydb-3.0.2.tgz#f5912c7a2505b61ee5ae7bb439ebe341c13ffb6a"
+  integrity sha512-luWAYqmxDjMgIDHtnXBODlPJoK4YEHQKUg4jZJXDXmH5x9B4EEnPIot2YeIrpdVMgdPO/6MACd4hUT8G025H+g==
   dependencies:
     commander "^5.0.0"
     extract-zip "^2.0.0"

@@ -1,7 +1,4 @@
-drop function if exists private.create_user_organization;
-drop function if exists private.really_create_project;
-
-create function private.create_user_organization(
+create or replace function private.create_user_organization(
   email text,
   name text,
   avatar text,
@@ -22,7 +19,7 @@ end;
 $$ language plpgsql volatile security definer
 set search_path = pg_catalog, public, pg_temp;
 
-create function private.really_create_project(
+create or replace function private.really_create_project(
   methodology_developer_id uuid,
   project_developer_id uuid,
   land_steward_id uuid,
