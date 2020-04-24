@@ -50,15 +50,14 @@ app.use(jwt({
 
 const pgPool = new Pool(
   parsePgConnectionString(
-    process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn'));
+    process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn'
+  ));
 
 app.post('/api/login', (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user
   if(req.user && req.user.sub) {
     const sub = req.user.sub;
     pgPool.connect((err, client, release) => {
-      console.log('err', err);
-      console.log('client', client);
       if (err) {
         res.sendStatus(500);
         console.error('Error acquiring postgres client', err.stack);
@@ -89,7 +88,7 @@ app.post('/api/login', (req: UserRequest, res: express.Response) => {
   }
 });
 
-app.use(postgraphile(pgPool, 'public', {
+app.use(postgraphile(process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn', 'public', {
   graphiql: true,
   watchPg: true,
   dynamicJson: true,
