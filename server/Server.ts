@@ -54,6 +54,7 @@ const pgPool = new Pool(
 
 app.post('/api/login', (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user
+  console.log('user', req.user.sub);
   if(req.user && req.user.sub) {
     const sub = req.user.sub;
     pgPool.connect((err, client, release) => {
