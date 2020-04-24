@@ -128,6 +128,9 @@ begin
     (credit_vintage_id, wallet_id, liquid_balance, burnt_balance)
   values
     (v_credit_vintage.id, buyer_wallet_id, units, 0)
+  on conflict on constraint account_balance_credit_vintage_id_wallet_id_key
+  do update set liquid_balance = account_balance.liquid_balance + units
+  where account_balance.credit_vintage_id = v_credit_vintage.id and account_balance.wallet_id = buyer_wallet_id
   returning * into v_buyer_account_balance;
 
   return v_buyer_account_balance;
