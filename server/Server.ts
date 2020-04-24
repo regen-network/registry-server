@@ -57,6 +57,8 @@ app.post('/api/login', (req: UserRequest, res: express.Response) => {
   if(req.user && req.user.sub) {
     const sub = req.user.sub;
     pgPool.connect((err, client, release) => {
+      console.log('err', err);
+      console.log('client', client);
       if (err) {
         res.sendStatus(500);
         console.error('Error acquiring postgres client', err.stack);
