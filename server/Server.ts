@@ -48,9 +48,11 @@ app.use(jwt({
   algorithms: ['RS256']
 }));
 
-const pgPool = new Pool(
-  parsePgConnectionString(
-    process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn'));
+// const pgPool = new Pool(
+//   parsePgConnectionString(
+//     'postgres://postgres:KuOCge9kS4CsAPknnvxi@registryproduction.cna6zybeqdns.us-east-1.rds.amazonaws.com:5432/postgres?ssl=1'
+//     // process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn'
+//   ));
 
 // app.post('/api/login', (req: UserRequest, res: express.Response) => {
 //   // Create Postgres ROLE for Auth0 user
@@ -87,7 +89,7 @@ const pgPool = new Pool(
 //   }
 // });
 
-app.use(postgraphile(pgPool, 'public', {
+app.use(postgraphile(process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn', 'public', {
   graphiql: true,
   watchPg: true,
   dynamicJson: true,
