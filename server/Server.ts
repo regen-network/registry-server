@@ -52,40 +52,40 @@ const pgPool = new Pool(
   parsePgConnectionString(
     process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn'));
 
-app.post('/api/login', (req: UserRequest, res: express.Response) => {
-  // Create Postgres ROLE for Auth0 user
-  if(req.user && req.user.sub) {
-    const sub = req.user.sub;
-    pgPool.connect((err, client, release) => {
-      if (err) {
-        res.sendStatus(500);
-        console.error('Error acquiring postgres client', err.stack);
-      } else {
-        client.query('SELECT private.create_app_user_if_needed($1)', [sub], (err, qres) => {
-          if (err) {
-            res.sendStatus(500);
-            console.error('Error creating role', err.stack);
-          } else {
-            // create user and associated party if needed
-            client.query('SELECT private.really_create_user_if_needed($1, $2, $3, $4)',
-              [req.body.email, req.body.nickname, req.body.picture, sub],
-              (err, qres) => {
-                release();
-                if (err) {
-                  res.sendStatus(500);
-                  console.error('Error creating user', err.stack);
-                } else {
-                  res.sendStatus(200);
-                }
-            });
-          }
-        });
-      }
-    });
-  } else {
-    res.sendStatus(200);
-  }
-});
+// app.post('/api/login', (req: UserRequest, res: express.Response) => {
+//   // Create Postgres ROLE for Auth0 user
+//   if(req.user && req.user.sub) {
+//     const sub = req.user.sub;
+//     pgPool.connect((err, client, release) => {
+//       if (err) {
+//         res.sendStatus(500);
+//         console.error('Error acquiring postgres client', err.stack);
+//       } else {
+//         client.query('SELECT private.create_app_user_if_needed($1)', [sub], (err, qres) => {
+//           if (err) {
+//             res.sendStatus(500);
+//             console.error('Error creating role', err.stack);
+//           } else {
+//             // create user and associated party if needed
+//             client.query('SELECT private.really_create_user_if_needed($1, $2, $3, $4)',
+//               [req.body.email, req.body.nickname, req.body.picture, sub],
+//               (err, qres) => {
+//                 release();
+//                 if (err) {
+//                   res.sendStatus(500);
+//                   console.error('Error creating user', err.stack);
+//                 } else {
+//                   res.sendStatus(200);
+//                 }
+//             });
+//           }
+//         });
+//       }
+//     });
+//   } else {
+//     res.sendStatus(200);
+//   }
+// });
 
 app.use(postgraphile(pgPool, 'public', {
   graphiql: true,
