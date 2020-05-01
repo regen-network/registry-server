@@ -18,6 +18,7 @@ import * as etl from 'etl';
 import { Readable } from 'stream';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
+import * as fs from 'fs';
 
 const app = express();
 
@@ -54,6 +55,10 @@ app.use(jwt({
 //   ));
 
 const pgPool = new Pool({
+  ssl: {
+    // rejectUnauthorized: false,
+    ca: fs.readFileSync('../config/rds-combined-ca-bundle.pem'),
+  },
   connectionString: process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn',
 });
 
