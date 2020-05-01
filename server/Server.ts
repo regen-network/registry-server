@@ -40,11 +40,11 @@ app.use(jwt({
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: "https://regen-network-registry.auth0.com/.well-known/jwks.json"
+    jwksUri: 'https://regen-network-registry.auth0.com/.well-known/jwks.json'
   }),
   credentialsRequired: false,
   audience: 'https://regen-registry-server.herokuapp.com/',
-  issuer: "https://regen-network-registry.auth0.com/",
+  issuer: 'https://regen-network-registry.auth0.com/',
   algorithms: ['RS256']
 }));
 
@@ -88,7 +88,7 @@ app.post('/api/login', (req: UserRequest, res: express.Response) => {
   }
 });
 
-app.use(postgraphile(process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn', 'public', {
+app.use(postgraphile(pgPool, 'public', {
   graphiql: true,
   watchPg: true,
   dynamicJson: true,
