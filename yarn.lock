@@ -4471,6 +4471,11 @@ performance-now@^2.1.0:
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
   integrity sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
 
+pg-connection-string@2.x:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/pg-connection-string/-/pg-connection-string-2.2.1.tgz#fd22870c4cdff66f085a8759ee68cde8e9ca0cbf"
+  integrity sha512-WnIjIJR575VyX+jRqpSt5PqbIzr3+1D793CkBbQWvpiNTGuHffZEO9+VrwAw0XSVfvxea7QiplHINGahWe9rjg==
+
 pidusage@^2.0.14:
   version "2.0.18"
   resolved "https://registry.yarnpkg.com/pidusage/-/pidusage-2.0.18.tgz#9ccef35df5508a5a4b0838c712ea9b79609aff34"
