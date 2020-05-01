@@ -1,21 +1,19 @@
 import * as express from 'express';
 import * as path from 'path';
-import { Pool, Client } from 'pg';
-// import { parse as parsePgConnectionString } from 'pg-connection-string';
+import { Pool, Client, PoolConfig } from 'pg';
 import { postgraphile } from 'postgraphile';
 import * as PgManyToManyPlugin from '@graphile-contrib/pg-many-to-many';
 import * as jwks from 'jwks-rsa';
 import * as jwt from 'express-jwt';
-import * as childProcess from 'child_process';
+// import * as childProcess from 'child_process';
 import * as fileUpload from 'express-fileupload';
-import * as xmldom from 'xmldom';
-import * as togeojson from '@mapbox/togeojson';
+// import * as xmldom from 'xmldom';
+// import * as togeojson from '@mapbox/togeojson';
 import * as cors from 'cors';
 import { release } from 'os';
-import * as unzipper from 'unzipper';
-//import * as fs from 'fs';
-import * as etl from 'etl';
-import { Readable } from 'stream';
+// import * as unzipper from 'unzipper';
+// import * as etl from 'etl';
+// import { Readable } from 'stream';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
 import * as fs from 'fs';
@@ -49,18 +47,17 @@ app.use(jwt({
   algorithms: ['RS256']
 }));
 
-// const pgPool = new Pool(
-//   parsePgConnectionString(
-//     process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn'
-//   ));
-
-const pgPool = new Pool({
-  ssl: {
-    // rejectUnauthorized: false,
-    ca: fs.readFileSync('../config/rds-combined-ca-bundle.pem'),
-  },
+const pgPoolConfig: PoolConfig = {
   connectionString: process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn',
-});
+};
+
+if (process.env.NODE_ENV === 'production') {
+  pgPoolConfig.ssl = {
+    ca: fs.readFileSync('../config/rds-combined-ca-bundle.pem'),
+  };
+}
+
+const pgPool = new Pool(pgPoolConfig);
 
 app.post('/api/login', (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user
