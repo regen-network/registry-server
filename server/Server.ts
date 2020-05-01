@@ -1,7 +1,7 @@
 import * as express from 'express';
 import * as path from 'path';
 import { Pool, Client } from 'pg';
-import { parse as parsePgConnectionString } from 'pg-connection-string';
+// import { parse as parsePgConnectionString } from 'pg-connection-string';
 import { postgraphile } from 'postgraphile';
 import * as PgManyToManyPlugin from '@graphile-contrib/pg-many-to-many';
 import * as jwks from 'jwks-rsa';
@@ -48,10 +48,14 @@ app.use(jwt({
   algorithms: ['RS256']
 }));
 
-const pgPool = new Pool(
-  parsePgConnectionString(
-    process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn'
-  ));
+// const pgPool = new Pool(
+//   parsePgConnectionString(
+//     process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn'
+//   ));
+
+const pgPool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn',
+});
 
 app.post('/api/login', (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user
