@@ -8,11 +8,7 @@ create or replace function transfer_credits(
 ) returns account_balance as $$
 declare
   v_user "user";
-  -- v_buyer_wallet wallet;
-  v_result RECORD;
-  -- v_credit_vintage credit_vintage;
   v_initial_distribution jsonb;
-  -- v_project project;
   v_developer_id uuid;
   v_land_owner_id uuid;
   v_steward_id uuid;
@@ -69,28 +65,6 @@ begin
     land_owner_wallet_id uuid,
     steward_wallet_id uuid
   );
-  -- into v_result;
-  --
-  -- select available_credits from v_result into v_available_credits;
-  -- select vintage from v_result into v_credit_vintage;
-  -- select vintage_project from v_result into v_project;
-  -- select developer_wallet_id from v_result into v_developer_wallet_id;
-  -- select land_owner_wallet_id from v_result into v_land_owner_wallet_id;
-  -- select steward_wallet_id from v_result into v_steward_wallet_id;
-  -- v_available_credits,
-  --   v_credit_vintage,
-  --   v_project,
-  --   v_developer_wallet_id,
-  --   v_land_owner_wallet_id,
-  --   v_steward_wallet_id;
-  --
-  -- v_available_credits_result := get_available_credits(vintage_id);
-
-  -- select sum(liquid_balance)
-  -- into v_available_credits
-  -- from account_balance
-  -- where (wallet_id = v_developer_wallet_id or wallet_id = v_land_owner_wallet_id or wallet_id = v_steward_wallet_id)
-  -- and credit_vintage_id = vintage_id;
 
   if units > v_available_credits then
     raise exception 'Not enough available credits left to transfer' using errcode = 'DNIED';
