@@ -1,18 +1,19 @@
-create or replace function private.create_user_organization(
+create or replace function public.create_user_organization(
   email text,
   name text,
   avatar text,
   org_name text,
-  wallet_addr bytea
+  wallet_addr bytea,
+  roles text[] default null
 ) returns uuid as $$
 declare
   v_user "user";
   v_org organization;
 begin
-  v_user := private.really_create_user
-    (email, name, null, null);
-  v_org := private.really_create_organization
-    (org_name, wallet_addr, v_user.id);
+  v_user := public.really_create_user
+    (email, name, null, null, roles);
+  v_org := public.really_create_organization
+    (org_name, wallet_addr, v_user.id, roles);
 
   return v_org.party_id;
 end;

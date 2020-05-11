@@ -1,9 +1,9 @@
-create or replace function private.really_create_user(
+create or replace function public.really_create_user(
   email text,
   name text,
   avatar text,
-  auth0_sub text
---   password text default null
+  auth0_sub text,
+  roles text[]
 ) returns "user" as $$
 declare
   v_user "user";
@@ -22,9 +22,9 @@ begin
 
   -- Insert the new user
   insert into "user"
-    (email, name, avatar, auth0_sub, party_id, is_admin)
+    (email, name, avatar, auth0_sub, party_id, is_admin, roles)
   values
-    (email, name, avatar, auth0_sub, v_party.id, email like '%@regen.network')
+    (email, name, avatar, auth0_sub, v_party.id, email like '%@regen.network', roles)
   returning * into v_user;
 
   -- Refresh the user
@@ -41,7 +41,8 @@ create or replace function private.really_create_user_if_needed(
   email text,
   name text,
   avatar text,
-  sub text
+  sub text,
+  roles text[] default null
 ) returns "user" as $$
 declare
   v_db_user "user";
@@ -76,7 +77,7 @@ begin
     if v_auth_user_id is null then
       select *
       into v_user
-      from private.really_create_user(email, name, avatar, sub);
+      from public.really_create_user(email, name, avatar, sub, roles);
     end if;
   end if;
 
