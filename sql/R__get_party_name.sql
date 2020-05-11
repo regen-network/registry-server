@@ -28,6 +28,6 @@ $$ language plpgsql strict volatile
 set search_path
 to pg_catalog, public, pg_temp;
 
-create function party_name(party party) returns text as $$
+create or replace function party_name(party party) returns text as $$
   select get_party_name(party.id)
 $$ language sql STABLE;

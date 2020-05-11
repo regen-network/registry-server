@@ -28,6 +28,6 @@ $$ language plpgsql strict volatile
 set search_path
 to pg_catalog, public, pg_temp;
 
-create function party_wallet_id(party party) returns uuid as $$
+create or replace function party_wallet_id(party party) returns uuid as $$
   select get_party_wallet_id(party.id)
 $$ language sql STABLE;
