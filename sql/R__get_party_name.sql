@@ -1,10 +1,10 @@
-create or replace function get_party_wallet_id
+create or replace function get_party_name
 (
   v_party_id uuid
-) returns uuid as $$
+) returns text as $$
 declare
   v_party party;
-  v_wallet_id uuid;
+  v_name text;
 begin
   select *
   into v_party
@@ -12,22 +12,22 @@ begin
   where id = v_party_id;
 
   if v_party.type = 'user' then
-    select wallet_id
-    into v_wallet_id
+    select name
+    into v_name
     from "user"
     where party_id = v_party.id;
   else
-    select wallet_id
-    into v_wallet_id
+    select name
+    into v_name
     from "organization"
     where party_id = v_party.id;
   end if;
-  return v_wallet_id;
+  return v_name;
 end;
 $$ language plpgsql strict volatile
 set search_path
 to pg_catalog, public, pg_temp;
 
-create function party_wallet_id(party party) returns uuid as $$
-  select get_party_wallet_id(party.id)
+create function party_name(party party) returns text as $$
+  select get_party_name(party.id)
 $$ language sql STABLE;
