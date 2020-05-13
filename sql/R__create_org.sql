@@ -2,7 +2,8 @@ create or replace function public.really_create_organization(
   name text,
   wallet_addr bytea,
   owner_id uuid,
-  roles text[] default null
+  roles text[] default null,
+  org_address jsonb default null
 ) returns organization as $$
 declare
   v_org organization;
@@ -25,9 +26,9 @@ begin
 
   -- Insert the new organization
   insert into organization
-    (name, wallet_id, party_id, roles)
+    (name, wallet_id, party_id, roles, address)
   values
-    (name, v_wallet.id, v_party.id, roles)
+    (name, v_wallet.id, v_party.id, roles, org_address)
   returning * into v_org;
 
   -- Add first member (owner)
