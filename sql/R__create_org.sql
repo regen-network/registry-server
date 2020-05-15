@@ -9,6 +9,7 @@ declare
   v_org organization;
   v_party party;
   v_wallet wallet;
+  v_address address;
 begin
   -- Insert the new party corresponding to the organization
   insert into party
@@ -24,11 +25,20 @@ begin
     (wallet_addr)
   returning * into v_wallet;
 
+  -- Insert the organization's address if not null
+  if org_address is not null then
+    insert into address
+      (feature)
+    values
+      (org_address)
+    returning * into v_address;
+  end if;
+
   -- Insert the new organization
   insert into organization
-    (name, wallet_id, party_id, roles, address)
+    (name, wallet_id, party_id, roles, address_id)
   values
-    (name, v_wallet.id, v_party.id, roles, org_address)
+    (name, v_wallet.id, v_party.id, roles, v_address.id)
   returning * into v_org;
 
   -- Add first member (owner)

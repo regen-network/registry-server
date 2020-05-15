@@ -11,6 +11,7 @@ declare
   v_user "user";
   v_party party;
   v_wallet wallet;
+  v_address address;
 begin
   if email is null then
     raise exception 'Email is required' using errcode = 'MODAT';
@@ -32,11 +33,20 @@ begin
     returning * into v_wallet;
   end if;
 
+  -- Insert the user's address if not null
+  if address is not null then
+    insert into "address"
+      (feature)
+    values
+      (address)
+    returning * into v_address;
+  end if;
+
   -- Insert the new user
   insert into "user"
-    (email, name, avatar, auth0_sub, party_id, is_admin, roles, address, wallet_id)
+    (email, name, avatar, auth0_sub, party_id, is_admin, roles, address_id, wallet_id)
   values
-    (email, name, avatar, auth0_sub, v_party.id, email like '%@regen.network', roles, address, v_wallet.id)
+    (email, name, avatar, auth0_sub, v_party.id, email like '%@regen.network', roles, v_address.id, v_wallet.id)
   returning * into v_user;
 
   -- Refresh the user
