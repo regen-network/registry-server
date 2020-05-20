@@ -74,7 +74,7 @@ app.post('/api/login', (req: UserRequest, res: express.Response) => {
             console.error('Error creating role', err.stack);
           } else {
             // create user and associated party if needed
-            client.query('SELECT private.really_create_user_if_needed($1, $2, $3, $4)',
+            client.query('SELECT private.really_create_user_if_needed($1, $2, $3, $4, NULL)',
               [req.body.email, req.body.nickname, req.body.picture, sub],
               (err, qres) => {
                 release();

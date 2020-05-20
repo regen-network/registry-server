@@ -1,11 +1,14 @@
 create or replace function transfer_credits(
   vintage_id uuid,
   buyer_wallet_id uuid,
+  address_id uuid,
   units numeric,
   credit_price numeric,
   tx_state transaction_state,
-  broker_id uuid default uuid_nil()
-) returns account_balance as $$
+  broker_id uuid default uuid_nil(),
+  stripe_id text default '',
+  p_type purchase_type default 'offline'::purchase_type
+) returns uuid as $$
 declare
   v_user "user";
   v_initial_distribution jsonb;
@@ -20,6 +23,7 @@ declare
   v_value numeric;
   v_from uuid;
   v_buyer_account_balance account_balance;
+  v_purchase_id uuid;
 begin
   -- Make sure that current user can transfer credits
   if public.get_current_user() is null then
@@ -70,6 +74,13 @@ begin
     raise exception 'Not enough available credits left to transfer' using errcode = 'DNIED';
   end if;
 
+  -- create new purchase
+  insert into purchase
+    ("stripe_id", type, "buyer_wallet_id", credit_vintage_id, "address_id")
+  values
+    (stripe_id, p_type, buyer_wallet_id, vintage_id, address_id)
+  returning id into v_purchase_id;
+
   -- update project's stakeholders' account balances and create corresponding transactions
   for v_key, v_value in
   select *
@@ -102,14 +113,14 @@ begin
 
         if broker_id = uuid_nil() then
           insert into transaction
-            (from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id)
+            (from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
           values
-            (v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id);
+            (v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
         else
           insert into transaction
-            (broker_id, from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id)
+            (broker_id, from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
           values
-            (broker_id, v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id);
+            (broker_id, v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
         end if;
       end if;
   end loop;
@@ -124,7 +135,7 @@ begin
   where account_balance.credit_vintage_id = vintage_id and account_balance.wallet_id = buyer_wallet_id
   returning * into v_buyer_account_balance;
 
-  return v_buyer_account_balance;
+  return v_purchase_id;
 end;
 $$ language plpgsql strict volatile
 set search_path

@@ -1,13 +1,17 @@
-create or replace function private.really_create_user(
+create or replace function public.really_create_user(
   email text,
   name text,
   avatar text,
-  auth0_sub text
---   password text default null
+  auth0_sub text,
+  roles text[] default null,
+  address jsonb default null,
+  wallet_addr bytea default null
 ) returns "user" as $$
 declare
   v_user "user";
   v_party party;
+  v_wallet wallet;
+  v_address address;
 begin
   if email is null then
     raise exception 'Email is required' using errcode = 'MODAT';
@@ -20,11 +24,29 @@ begin
     ('user')
   returning * into v_party;
 
+  -- Insert the new user's wallet if not null
+  if wallet_addr is not null then
+    insert into wallet
+      (addr)
+    values
+      (wallet_addr)
+    returning * into v_wallet;
+  end if;
+
+  -- Insert the user's address if not null
+  if address is not null then
+    insert into "address"
+      (feature)
+    values
+      (address)
+    returning * into v_address;
+  end if;
+
   -- Insert the new user
   insert into "user"
-    (email, name, avatar, auth0_sub, party_id, is_admin)
+    (email, name, avatar, auth0_sub, party_id, is_admin, roles, address_id, wallet_id)
   values
-    (email, name, avatar, auth0_sub, v_party.id, email like '%@regen.network')
+    (email, name, avatar, auth0_sub, v_party.id, email like '%@regen.network', roles, v_address.id, v_wallet.id)
   returning * into v_user;
 
   -- Refresh the user
@@ -41,7 +63,8 @@ create or replace function private.really_create_user_if_needed(
   email text,
   name text,
   avatar text,
-  sub text
+  sub text,
+  roles text[] default null
 ) returns "user" as $$
 declare
   v_db_user "user";
@@ -76,7 +99,7 @@ begin
     if v_auth_user_id is null then
       select *
       into v_user
-      from private.really_create_user(email, name, avatar, sub);
+      from public.really_create_user(email, name, avatar, sub, roles, null, null);
     end if;
   end if;
 
