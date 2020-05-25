@@ -19,10 +19,10 @@ import { UserRequest, UserIncomingMessage } from './types';
 import * as fs from 'fs';
 
 const app = express();
+const stripe = require('stripe')(process.env.STRIPE_API_KEY);
 
 app.use(fileUpload());
 app.use(cors());
-app.use(bodyParser.json());
 
 // app.use('/.storybook/', express.static(path.join(__dirname, '../web/build/storybook')));
 // app.get('/.storybook/*', function (req, res) {
@@ -59,7 +59,7 @@ if (process.env.NODE_ENV === 'production') {
 
 const pgPool = new Pool(pgPoolConfig);
 
-app.post('/api/login', (req: UserRequest, res: express.Response) => {
+app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user
   if(req.user && req.user.sub) {
     const sub = req.user.sub;
@@ -92,6 +92,47 @@ app.post('/api/login', (req: UserRequest, res: express.Response) => {
   } else {
     res.sendStatus(200);
   }
+});
+
+app.post('/webhook', bodyParser.raw({ type: 'application/json' }), (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_ENDPOINT_SECRET);
+  } catch (err) {
+    res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'checkout.session.completed':
+      const session = event.data.object;
+
+      console.log(session)
+      const clientReferenceId = session['client_reference_id']; // user or org uuid
+      // const customerEmail = session['customer_email'];
+      const items = session['display_items'];
+      if (items.length) {
+        const item = items[0];
+        stripe.products.retrieve(
+          item.product,
+          (err, product) => {
+            console.log('product', product)
+          }
+        );
+        // item.quantity item.price
+      } else {
+        return res.status(400).end();
+      }
+      break;
+    default:
+      // Unexpected event type
+      return res.status(400).end();
+  }
+
+  // Return a 200 res to acknowledge receipt of the event
+  res.json({ received: true });
 });
 
 app.use(postgraphile(pgPool, 'public', {
