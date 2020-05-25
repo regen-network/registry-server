@@ -94,7 +94,7 @@ app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Respon
   }
 });
 
-app.post('/webhook', bodyParser.raw({ type: 'application/json' }), (req, res) => {
+app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
 
@@ -108,20 +108,41 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), (req, res) =>
   switch (event.type) {
     case 'checkout.session.completed':
       const session = event.data.object;
-
-      console.log(session)
-      const clientReferenceId = session['client_reference_id']; // user or org uuid
+      console.log('session', session)
+      const clientReferenceId = session['client_reference_id']; // buyer wallet id
       // const customerEmail = session['customer_email'];
       const items = session['display_items'];
       if (items.length) {
         const item = items[0];
-        stripe.products.retrieve(
-          item.product,
-          (err, product) => {
-            console.log('product', product)
+        try {
+          const client = await pgPool.connect();
+          try {
+            // const product = await stripe.products.retrieve(item.product);
+            const product = await stripe.products.retrieve('prod_HAqfJmcixw0V77');
+            console.log('product', product);
+            try {
+              const { walletId, addressId } = JSON.parse(clientReferenceId);
+              console.log('New transfer for', walletId);
+              await client.query('SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8)',
+              [product.metadata.vintage_id, walletId, addressId,
+              item.quantity, item.amount / 100, 'succeeded', session.id, 'stripe_checkout']);
+
+              res.sendStatus(200);
+            } catch (err) {
+              res.sendStatus(500);
+              console.error('Error transfering credits', err);
+            }
+          } catch (err) {
+            res.sendStatus(500);
+            console.error('Error getting Stripe product', err);
           }
-        );
-        // item.quantity item.price
+          finally {
+            client.release();
+          }
+        } catch (err) {
+          res.sendStatus(500);
+          console.error('Error acquiring postgres client', err);
+        }
       } else {
         return res.status(400).end();
       }
