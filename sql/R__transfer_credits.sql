@@ -25,28 +25,6 @@ declare
   v_buyer_account_balance account_balance;
   v_purchase_id uuid;
 begin
-  -- Make sure that current user can transfer credits
-  if public.get_current_user() is null then
-    raise exception 'You must log in to issue credits' using errcode = 'LOGIN';
-  end if;
-
-  -- find user
-  select *
-  into v_user
-  from "user"
-  where auth0_sub = public.get_current_user();
-
-  if v_user.id is null then
-    raise exception 'User not found' using errcode = 'NTFND';
-  end if;
-
-  -- Only admin users allowed to transfer credits for now
-  -- XXX Later on, project stakeholders (all of them or only project developer?)
-  -- should be able to transfer credits as well
-  if v_user.is_admin is false then
-    raise exception 'Only admin users can issue credits' using errcode = 'DNIED';
-  end if;
-
   -- get number of available credits left for transfer
   -- (ie credits that are still part of the project stakeholders' liquid balances)
   select * from get_available_credits_record(vintage_id)
