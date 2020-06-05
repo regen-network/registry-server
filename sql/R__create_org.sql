@@ -1,3 +1,34 @@
+create or replace function public.really_create_organization_if_needed
+(
+  org_name text,
+  wallet_addr bytea,
+  owner_id uuid,
+  roles text[] default null,
+  org_address jsonb default null
+) returns organization as $$
+declare
+  v_org organization;
+  v_party party;
+  v_wallet wallet;
+  v_address address;
+begin
+  select *
+  from organization
+  into v_org
+  where name = org_name;
+
+  if v_org is not null then
+    return v_org;
+  else
+    select * from public.really_create_organization(org_name, wallet_addr, owner_id, roles, org_address)
+    into v_org;
+    return v_org;
+  end if;
+end;
+$$ language plpgsql volatile
+set search_path
+to pg_catalog, public, pg_temp;
+
 create or replace function public.really_create_organization(
   name text,
   wallet_addr bytea,

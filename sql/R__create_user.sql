@@ -1,3 +1,30 @@
+create or replace function public.really_create_user_if_needed(
+  user_email text,
+  name text,
+  avatar text,
+  auth0_sub text,
+  roles text[] default null,
+  address jsonb default null,
+  wallet_addr bytea default null,
+  updates boolean default false
+) returns "user" as $$
+declare
+  v_user "user";
+begin
+  select * from "user"
+  into v_user
+  where email = user_email;
+
+  if v_user.id is not null then 
+    return v_user;
+  else
+    select * from public.really_create_user(user_email, name, avatar, auth0_sub, roles, address, wallet_addr, updates)
+    into v_user;
+    return v_user;
+  end if;
+end;
+$$ language plpgsql volatile set search_path to pg_catalog, public, pg_temp;
+
 create or replace function public.really_create_user(
   email text,
   name text,
@@ -5,7 +32,8 @@ create or replace function public.really_create_user(
   auth0_sub text,
   roles text[] default null,
   address jsonb default null,
-  wallet_addr bytea default null
+  wallet_addr bytea default null,
+  updates boolean default false
 ) returns "user" as $$
 declare
   v_user "user";
@@ -44,9 +72,9 @@ begin
 
   -- Insert the new user
   insert into "user"
-    (email, name, avatar, auth0_sub, party_id, is_admin, roles, address_id, wallet_id)
+    (email, name, avatar, auth0_sub, party_id, is_admin, roles, address_id, wallet_id, updates)
   values
-    (email, name, avatar, auth0_sub, v_party.id, email like '%@regen.network', roles, v_address.id, v_wallet.id)
+    (email, name, avatar, auth0_sub, v_party.id, email like '%@regen.network', roles, v_address.id, v_wallet.id, updates)
   returning * into v_user;
 
   -- Refresh the user
@@ -95,11 +123,12 @@ begin
       v_user := v_db_user;
     end if;
   else
-    -- if no user yet with this auth0 sub, create it
+    -- if no user yet with this auth0 sub, create it with default wallet
+
     if v_auth_user_id is null then
       select *
       into v_user
-      from public.really_create_user(email, name, avatar, sub, roles, null, null);
+      from public.really_create_user(email, name, avatar, sub, roles, null, name::bytea);
     end if;
   end if;
 
