@@ -5,15 +5,9 @@ import { postgraphile } from 'postgraphile';
 import * as PgManyToManyPlugin from '@graphile-contrib/pg-many-to-many';
 import * as jwks from 'jwks-rsa';
 import * as jwt from 'express-jwt';
-// import * as childProcess from 'child_process';
 import * as fileUpload from 'express-fileupload';
-// import * as xmldom from 'xmldom';
-// import * as togeojson from '@mapbox/togeojson';
 import * as cors from 'cors';
 import { release } from 'os';
-// import * as unzipper from 'unzipper';
-// import * as etl from 'etl';
-// import { Readable } from 'stream';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
 import * as fs from 'fs';
@@ -108,21 +102,16 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
   switch (event.type) {
     case 'checkout.session.completed':
       const session = event.data.object;
-      console.log('session', session)
       const clientReferenceId = session['client_reference_id']; // buyer wallet id
-      // const customerEmail = session['customer_email'];
       const items = session['display_items'];
       if (items.length) {
         const item = items[0];
         try {
           const client = await pgPool.connect();
           try {
-            // const product = await stripe.products.retrieve(item.product);
-            const product = await stripe.products.retrieve('prod_HAqfJmcixw0V77');
-            console.log('product', product);
+            const product = await stripe.products.retrieve(item.product);
             try {
               const { walletId, addressId } = JSON.parse(clientReferenceId);
-              console.log('New transfer for', walletId);
               await client.query('SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8)',
               [product.metadata.vintage_id, walletId, addressId,
               item.quantity, item.amount / 100, 'succeeded', session.id, 'stripe_checkout']);
