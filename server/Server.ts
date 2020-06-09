@@ -11,10 +11,8 @@ import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
 import * as fs from 'fs';
-// import * as AWS from 'aws-sdk';
+import * as AWS from 'aws-sdk';
 import * as nodemailer from 'nodemailer';
-
-// AWS.config.update({ region: 'us-east-1' || process.env.AWS_REGION });
 
 const app = express();
 const stripe = require('stripe')(process.env.STRIPE_API_KEY);
@@ -58,46 +56,47 @@ if (process.env.NODE_ENV === 'production') {
 const pgPool = new Pool(pgPoolConfig);
 
 // create Nodemailer SES transporter
-// const transporter = nodemailer.createTransport({
-//   SES: new AWS.SES({
-//     apiVersion: "2010-12-01",
-//     accessKeyId: process.env.AWS_SES_KEY_ID || "",
-//     secretAccessKey: process.env.AWS_SES_ACCESS_KEY || "",
-//   }),
-// });
+const transporter = nodemailer.createTransport({
+  SES: new AWS.SES({
+    apiVersion: "2010-12-01",
+    accessKeyId: process.env.AWS_SES_KEY_ID || "",
+    secretAccessKey: process.env.AWS_SES_ACCESS_KEY || "",
+    region: "us-east-1",
+  }),
+});
 
-// app.post('/email', async (req, res) => {
-//   // send some mail
-//   transporter.sendMail(
-//     {
-//       from: "marie@regen.network",
-//       to: "marie.gauthier63@gmail.com",
-//       subject: "Test Message",
-//       text:
-//         "I hope this message gets sent!",
-//       // ses: {
-//       //   // optional extra arguments for SendRawEmail
-//       //   Tags: [
-//       //     {
-//       //       Name: "tag name",
-//       //       Value: "tag value",
-//       //     },
-//       //   ],
-//       // },
-//     },
-//     (err, info) => {
-//       if (err) {
-//         console.log(err);
-//         res.sendStatus(500);
-//       }
-//       if (info) {
-//         console.log(info.envelope);
-//         console.log(info.messageId);
-//         res.sendStatus(200);
-//       }
-//     }
-//   );
-// });
+app.post('/email', async (req, res) => {
+  // send some mail
+  transporter.sendMail(
+    {
+      from: "marie@regen.network",
+      to: "marie.gauthier63@gmail.com",
+      subject: "Test Message",
+      text:
+        "I hope this message gets sent!",
+      // ses: {
+      //   // optional extra arguments for SendRawEmail
+      //   Tags: [
+      //     {
+      //       Name: "tag name",
+      //       Value: "tag value",
+      //     },
+      //   ],
+      // },
+    },
+    (err, info) => {
+      if (err) {
+        console.log(err);
+        res.sendStatus(500);
+      }
+      if (info) {
+        console.log(info.envelope);
+        console.log(info.messageId);
+        res.sendStatus(200);
+      }
+    }
+  );
+});
 
 app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user
