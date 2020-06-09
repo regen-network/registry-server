@@ -11,10 +11,10 @@ import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
 import * as fs from 'fs';
-import * as AWS from 'aws-sdk';
+// import * as AWS from 'aws-sdk';
 import * as nodemailer from 'nodemailer';
 
-AWS.config.update({ region: 'us-east-1' || process.env.AWS_REGION });
+// AWS.config.update({ region: 'us-east-1' || process.env.AWS_REGION });
 
 const app = express();
 const stripe = require('stripe')(process.env.STRIPE_API_KEY);
