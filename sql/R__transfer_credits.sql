@@ -8,7 +8,7 @@ create or replace function transfer_credits(
   broker_id uuid default uuid_nil(),
   stripe_id text default '',
   p_type purchase_type default 'offline'::purchase_type
-) returns uuid as $$
+) returns jsonb as $$
 declare
   v_user "user";
   v_initial_distribution jsonb;
@@ -24,6 +24,10 @@ declare
   v_from uuid;
   v_buyer_account_balance account_balance;
   v_purchase_id uuid;
+  v_project jsonb;
+  v_credit_class_id uuid;
+  v_credit_class_version credit_class_version;
+  v_buyer_name text;
 begin
   -- get number of available credits left for transfer
   -- (ie credits that are still part of the project stakeholders' liquid balances)
@@ -31,21 +35,25 @@ begin
   into
     v_available_credits,
     v_initial_distribution,
+    v_credit_class_id,
     v_developer_id,
     v_land_owner_id,
     v_steward_id,
     v_developer_wallet_id,
     v_land_owner_wallet_id,
-    v_steward_wallet_id
+    v_steward_wallet_id,
+    v_project
   as (
     available_credits numeric,
     initial_distribution jsonb,
+    credit_class_id uuid,
     developer_id uuid,
     land_owner_id uuid,
     steward_id uuid,
     developer_wallet_id uuid,
     land_owner_wallet_id uuid,
-    steward_wallet_id uuid
+    steward_wallet_id uuid,
+    project jsonb
   );
 
   if units > v_available_credits then
@@ -113,7 +121,25 @@ begin
   where account_balance.credit_vintage_id = vintage_id and account_balance.wallet_id = buyer_wallet_id
   returning * into v_buyer_account_balance;
 
-  return v_purchase_id;
+  -- build jsonb response
+  -- credit class info
+  select * from credit_class_version
+  into v_credit_class_version
+  where id = v_credit_class_id
+  order by created_at desc limit 1;
+
+  -- buyer's name
+  select name into v_buyer_name from party where wallet_id = buyer_wallet_id;
+
+  return jsonb_build_object(
+    'purchaseId', v_purchase_id,
+    'project', v_project,
+    'creditClass', jsonb_build_object(
+      'name', v_credit_class_version.name,
+      'metadata', v_credit_class_version.metadata
+    ),
+    'ownerName', v_buyer_name
+  );
 end;
 $$ language plpgsql strict volatile
 set search_path

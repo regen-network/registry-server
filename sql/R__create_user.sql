@@ -45,13 +45,6 @@ begin
     raise exception 'Email is required' using errcode = 'MODAT';
   end if;
 
-  -- Insert the new party corresponding to the user
-  insert into party
-    (type)
-  values
-    ('user')
-  returning * into v_party;
-
   -- Insert the new user's wallet if not null
   if wallet_addr is not null then
     insert into wallet
@@ -70,11 +63,18 @@ begin
     returning * into v_address;
   end if;
 
+  -- Insert the new party corresponding to the user
+  insert into party
+    (type, name, roles, address_id, wallet_id)
+  values
+    ('user', name, roles, v_address.id, v_wallet.id)
+  returning * into v_party;
+
   -- Insert the new user
   insert into "user"
-    (email, name, avatar, auth0_sub, party_id, is_admin, roles, address_id, wallet_id, updates)
+    (email, avatar, auth0_sub, party_id, is_admin, updates)
   values
-    (email, name, avatar, auth0_sub, v_party.id, email like '%@regen.network', roles, v_address.id, v_wallet.id, updates)
+    (email, avatar, auth0_sub, v_party.id, email like '%@regen.network', updates)
   returning * into v_user;
 
   -- Refresh the user

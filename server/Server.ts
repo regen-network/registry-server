@@ -11,6 +11,10 @@ import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
 import * as fs from 'fs';
+import * as AWS from 'aws-sdk';
+import * as nodemailer from 'nodemailer';
+
+AWS.config.update({ region: 'us-east-1' || process.env.AWS_REGION });
 
 const app = express();
 const stripe = require('stripe')(process.env.STRIPE_API_KEY);
@@ -52,6 +56,48 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const pgPool = new Pool(pgPoolConfig);
+
+// create Nodemailer SES transporter
+const transporter = nodemailer.createTransport({
+  SES: new AWS.SES({
+    apiVersion: "2010-12-01",
+    accessKeyId: process.env.AWS_SES_KEY_ID || "",
+    secretAccessKey: process.env.AWS_SES_ACCESS_KEY || "",
+  }),
+});
+
+app.post('/email', async (req, res) => {
+  // send some mail
+  transporter.sendMail(
+    {
+      from: "marie@regen.network",
+      to: "marie.gauthier63@gmail.com",
+      subject: "Test Message",
+      text:
+        "I hope this message gets sent!",
+      // ses: {
+      //   // optional extra arguments for SendRawEmail
+      //   Tags: [
+      //     {
+      //       Name: "tag name",
+      //       Value: "tag value",
+      //     },
+      //   ],
+      // },
+    },
+    (err, info) => {
+      if (err) {
+        console.log(err);
+        res.sendStatus(500);
+      }
+      if (info) {
+        console.log(info.envelope);
+        console.log(info.messageId);
+        res.sendStatus(200);
+      }
+    }
+  );
+});
 
 app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user
@@ -112,10 +158,10 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
             const product = await stripe.products.retrieve(item.product);
             try {
               const { walletId, addressId } = JSON.parse(clientReferenceId);
-              await client.query('SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8)',
+              const qres = await client.query('SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8)',
               [product.metadata.vintage_id, walletId, addressId,
               item.quantity, item.amount / 100, 'succeeded', session.id, 'stripe_checkout']);
-
+              console.log(qres);
               res.sendStatus(200);
             } catch (err) {
               res.sendStatus(500);

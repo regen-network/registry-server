@@ -180,3 +180,5 @@ fabric.properties
 
 # Seed private data
 seed.sql
+
+.vscode/
