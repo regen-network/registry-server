@@ -108,17 +108,20 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
       const items = session['display_items'];
       if (items.length) {
         const item = items[0];
-        console.log('item', item)
+        console.log('session', session)
         try {
           const client = await pgPool.connect();
           try {
-            const product = await stripe.products.retrieve(item.product);
+            const product = await stripe.products.retrieve(item.sku.product);
             try {
               const { walletId, addressId } = JSON.parse(clientReferenceId);
+
+              // Transfer credits
               const qres = await client.query('SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8)',
               [product.metadata.vintage_id, walletId, addressId,
               item.quantity, item.amount / 100, 'succeeded', session.id, 'stripe_checkout']);
               console.log(qres);
+
               res.sendStatus(200);
             } catch (err) {
               res.sendStatus(500);
