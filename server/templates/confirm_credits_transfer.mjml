@@ -202,7 +202,7 @@
           </tr>
           <tr class="summary-row">
             <td class="summary-item">price</td>
-            <td class="summary-content">$[[amount]] USD</td>
+            <td class="summary-content">$[[amount]] [[currency]]</td>
           </tr>
           <tr class="summary-row">
             <td class="summary-item">date</td>

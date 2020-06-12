@@ -120,8 +120,45 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
               const qres = await client.query('SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8)',
               [product.metadata.vintage_id, walletId, addressId,
               item.quantity, item.amount / 100, 'succeeded', session.id, 'stripe_checkout']);
-              console.log(qres.rows[0]['transfer_credits']);
 
+              // Send email
+              const { project, ownerName, purchaseId, creditClass } = qres.rows[0]['transfer_credits'];
+              const dateFormat = new Intl.DateTimeFormat("en", {
+                year: "numeric",
+                month: "short",
+                day: "2-digit",
+              });
+              const sendEmailPayload: SendEmailPayload = {
+                options: {
+                  to: session["customer_email"],
+                  subject: "Your Regen Registry purchase was successful",
+                },
+                template: "confirm_credits_transfer.mjml",
+                variables: {
+                  purchaseId,
+                  projectName: project.name,
+                  projectImage: project.image,
+                  projectLocation: project.location,
+                  projectArea: project.area,
+                  projectAreaUnit: project.unit,
+                  projectLink:
+                    "https://regen-registry.netlify.app/projects/impactag",
+                  creditClassName: creditClass.name,
+                  creditClassType: creditClass.metadata.type,
+                  ownerName,
+                  quantity: item.quantity,
+                  amount: item.amount,
+                  currency: item.currency.toUpperCase(),
+                  date: dateFormat.format(new Date()),
+                },
+              };
+              try {
+                await sendEmail(sendEmailPayload);
+                res.sendStatus(200);
+              } catch (err) {
+                console.log("Error sending email", err);
+                res.sendStatus(500);
+              }
               res.sendStatus(200);
             } catch (err) {
               res.sendStatus(500);
