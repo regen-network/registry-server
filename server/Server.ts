@@ -11,8 +11,8 @@ import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
 import * as fs from 'fs';
-import * as AWS from 'aws-sdk';
-import * as nodemailer from 'nodemailer';
+
+import { SendEmailPayload, sendEmail } from './email';
 
 const app = express();
 const stripe = require('stripe')(process.env.STRIPE_API_KEY);
@@ -54,49 +54,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const pgPool = new Pool(pgPoolConfig);
-
-// create Nodemailer SES transporter
-const transporter = nodemailer.createTransport({
-  SES: new AWS.SES({
-    apiVersion: "2010-12-01",
-    accessKeyId: process.env.AWS_SES_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SES_ACCESS_KEY || "",
-    region: "us-east-1",
-  }),
-});
-
-app.post('/email', async (req, res) => {
-  // send some mail
-  transporter.sendMail(
-    {
-      from: "marie@regen.network",
-      to: "marie.gauthier63@gmail.com",
-      subject: "Test Message",
-      text:
-        "I hope this message gets sent!",
-      // ses: {
-      //   // optional extra arguments for SendRawEmail
-      //   Tags: [
-      //     {
-      //       Name: "tag name",
-      //       Value: "tag value",
-      //     },
-      //   ],
-      // },
-    },
-    (err, info) => {
-      if (err) {
-        console.log(err);
-        res.sendStatus(500);
-      }
-      if (info) {
-        console.log(info.envelope);
-        console.log(info.messageId);
-        res.sendStatus(200);
-      }
-    }
-  );
-});
 
 app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user
@@ -151,6 +108,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
       const items = session['display_items'];
       if (items.length) {
         const item = items[0];
+        console.log('item', item)
         try {
           const client = await pgPool.connect();
           try {
@@ -213,5 +171,5 @@ const port = process.env.PORT || 5000;
 
 app.listen(port);
 
-console.log("Started server on port " + port);
-console.log("Graphiql UI at http://localhost:" + port + "/graphiql");
+console.log('Started server on port ' + port);
+console.log('Graphiql UI at http://localhost:' + port + '/graphiql');
