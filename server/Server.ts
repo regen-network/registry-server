@@ -120,7 +120,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
               const qres = await client.query('SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8)',
               [product.metadata.vintage_id, walletId, addressId,
               item.quantity, item.amount / 100, 'succeeded', session.id, 'stripe_checkout']);
-              console.log(qres);
+              console.log(qres.rows[0]['transfer_credits']);
 
               res.sendStatus(200);
             } catch (err) {
