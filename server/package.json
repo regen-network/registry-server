@@ -36,7 +36,6 @@
     "xmldom": "^0.1.27"
   },
   "scripts": {
-    "start": "ts-node Server.ts",
-    "worker": "node -r ./config/env.js ./node_modules/.bin/graphile-worker"
+    "start": "ts-node Server.ts"
   }
 }

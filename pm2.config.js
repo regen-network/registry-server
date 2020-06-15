@@ -17,23 +17,6 @@ module.exports = {
       }
     },
     {
-      name: "worker",
-      script:
-        "yarn worker",
-      watch: ["server/"],
-      watch_options: {
-        usePolling: true,
-      },
-      cwd: "server/",
-      log: true,
-      env: {
-        NODE_ENV: "development",
-      },
-      env_production: {
-        NODE_ENV: "production",
-      }
-    },
-    {
       name: 'docker-compose',
       script: 'docker-compose up',
       cwd: 'server/',
