@@ -93,7 +93,7 @@ app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Respon
 
 app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
-  let event;
+  let event, client, qres, item, customerEmail: string;
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_ENDPOINT_SECRET);
@@ -101,74 +101,71 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
     res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
+  try {
+    client = await pgPool.connect();
+  } catch (err) {
+    res.sendStatus(500);
+    console.error('Error acquiring postgres client', err);
+  }
+
   // Handle the event
   switch (event.type) {
+    case 'invoice.payment_succeeded':
+      const invoice = event.data.object;
+      const lines = invoice.lines.data;
+      customerEmail = invoice['customer_email'];
+      if (lines.length) {
+        item = lines[0];
+        try {
+          // Transfer credits
+          qres = await client.query(
+            "SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8)",
+            [
+              invoice.metadata.vintage_id,
+              invoice.metadata.wallet_id,
+              invoice.metadata.address_id,
+              item.quantity,
+              item.amount / 100,
+              "succeeded",
+              invoice.id,
+              "stripe_invoice",
+            ]
+          );
+        } catch (err) {
+          res.sendStatus(500);
+          console.error('Error transfering credits', err);
+        }
+      } else {
+        return res.status(400).end();
+      }
+      break;
     case 'checkout.session.completed':
       const session = event.data.object;
-      const clientReferenceId = session['client_reference_id']; // buyer wallet id
+      const clientReferenceId = session['client_reference_id']; // buyer wallet id and address id
+      customerEmail = session['customer_email'];
+
       const items = session['display_items'];
       if (items.length) {
-        const item = items[0];
-        console.log('session', session)
+        item = items[0];
         try {
-          const client = await pgPool.connect();
+          const product = await stripe.products.retrieve(item.sku.product);
           try {
-            const product = await stripe.products.retrieve(item.sku.product);
-            try {
-              const { walletId, addressId } = JSON.parse(clientReferenceId);
+            const { walletId, addressId } = JSON.parse(clientReferenceId);
 
-              // Transfer credits
-              const qres = await client.query('SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8)',
-              [product.metadata.vintage_id, walletId, addressId,
-              item.quantity, item.amount / 100, 'succeeded', session.id, 'stripe_checkout']);
-
-              // Send confirmation email
-              const { project, ownerName, purchaseId, creditClass } = qres.rows[0]['transfer_credits'];
-              
-              const sendEmailPayload: SendEmailPayload = {
-                options: {
-                  to: session['customer_email'],
-                  subject: 'Your Regen Registry purchase was successful',
-                },
-                template: 'confirm_credits_transfer.mjml',
-                variables: {
-                  purchaseId,
-                  ownerName,
-                  projectName: project.name,
-                  projectImage: project.image,
-                  projectLocation: project.location.place_name,
-                  projectArea: project.area,
-                  projectAreaUnit: project.areaUnit,
-                  projectLink: project.metadata.url,
-                  creditClassName: creditClass.name,
-                  creditClassType: creditClass.metadata.type,
-                  quantity: item.quantity,
-                  amount: numberFormat.format(item.amount),
-                  currency: item.currency.toUpperCase(),
-                  date: dateFormat.format(new Date()),
-                },
-              };
-              try {
-                await sendEmail(sendEmailPayload);
-                res.json({ received: true });
-              } catch (err) {
-                res.sendStatus(500);
-                console.error('Error sending email', err);
-              }
-            } catch (err) {
-              res.sendStatus(500);
-              console.error('Error transfering credits', err);
-            }
+            // Transfer credits
+            qres = await client.query('SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8)',
+            [product.metadata.vintage_id, walletId, addressId,
+            item.quantity, item.amount / 100, 'succeeded', session.id, 'stripe_checkout']);
           } catch (err) {
             res.sendStatus(500);
-            console.error('Error getting Stripe product', err);
-          }
-          finally {
-            client.release();
+            console.error('Error transfering credits', err);
           }
         } catch (err) {
           res.sendStatus(500);
-          console.error('Error acquiring postgres client', err);
+          console.error('Error getting Stripe product', err);
+        }
+        finally {
+          client.release();
         }
       } else {
         return res.status(400).end();
@@ -177,7 +174,41 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
     default:
       // Unexpected event type
       return res.status(400).end();
-  }  
+  }
+
+  // Send confirmation email
+  const { project, ownerName, purchaseId, creditClass } = qres.rows[0]['transfer_credits'];
+  
+  const sendEmailPayload: SendEmailPayload = {
+    options: {
+      to: customerEmail,
+      subject: 'Your Regen Registry purchase was successful',
+    },
+    template: 'confirm_credits_transfer.mjml',
+    variables: {
+      purchaseId,
+      ownerName,
+      projectName: project.name,
+      projectImage: project.image,
+      projectLocation: project.location.place_name,
+      projectArea: project.area,
+      projectAreaUnit: project.areaUnit,
+      projectLink: project.metadata.url,
+      creditClassName: creditClass.name,
+      creditClassType: creditClass.metadata.type,
+      quantity: item.quantity,
+      amount: numberFormat.format(item.amount),
+      currency: item.currency.toUpperCase(),
+      date: dateFormat.format(new Date()),
+    },
+  };
+  try {
+    await sendEmail(sendEmailPayload);
+    res.json({ received: true });
+  } catch (err) {
+    res.sendStatus(500);
+    console.error('Error sending email', err);
+  }
 });
 
 app.use(postgraphile(pgPool, 'public', {
