@@ -138,7 +138,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
                   projectImage: project.image,
                   projectLocation: project.location.place_name,
                   projectArea: project.area,
-                  projectAreaUnit: project.unit,
+                  projectAreaUnit: project.areaUnit,
                   projectLink: project.metadata.url,
                   creditClassName: creditClass.name,
                   creditClassType: creditClass.metadata.type,
@@ -150,7 +150,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
               };
               try {
                 await sendEmail(sendEmailPayload);
-                res.sendStatus(200);
+                res.json({ received: true });
               } catch (err) {
                 res.sendStatus(500);
                 console.error('Error sending email', err);
@@ -177,10 +177,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
     default:
       // Unexpected event type
       return res.status(400).end();
-  }
-
-  // Return a 200 res to acknowledge receipt of the event
-  res.json({ received: true });
+  }  
 });
 
 app.use(postgraphile(pgPool, 'public', {

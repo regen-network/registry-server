@@ -192,7 +192,7 @@
               <a href="[[projectLink]]" class="project-name">[[projectName]]</a>
               <div class="project-info">
                 <img height="15px" src="https://regen-registry.s3.amazonaws.com/Small.png" />
-                <span>&nbsp;&nbsp;[[projectLocation]] | [[projectArea]][[projectAreaUnit]]</span>
+                <span>&nbsp;&nbsp;[[projectLocation]] | [[projectArea]] [[projectAreaUnit]]</span>
               </div>
             </td>
           </tr>
