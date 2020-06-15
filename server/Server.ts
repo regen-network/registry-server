@@ -197,7 +197,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
       creditClassName: creditClass.name,
       creditClassType: creditClass.metadata.type,
       quantity: item.quantity,
-      amount: numberFormat.format(item.amount),
+      amount: numberFormat.format(item.amount / 100),
       currency: item.currency.toUpperCase(),
       date: dateFormat.format(new Date()),
     },
