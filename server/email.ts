@@ -33,7 +33,7 @@ export interface SendEmailPayload {
 export async function sendEmail(payload: SendEmailPayload) {
   const { options: inOptions, template, variables } = payload;
   const options = {
-    from: 'marie@regen.network', // XXX
+    from: process.env.SES_EMAIL || 'marie@regen.network',
     ...inOptions,
   };
   if (template) {
@@ -69,11 +69,7 @@ function loadTemplate(template: string) {
         escape: /\[\[([\s\S]+?)\]\]/g,
       });
       return (variables: { [varName: string]: any }) => {
-        const mjml = templateFn({
-          // projectName,
-          // legalText,
-          ...variables,
-        });
+        const mjml = templateFn(variables);
         const { html, errors } = mjml2html(mjml);
         if (errors && errors.length) {
           console.error(errors);

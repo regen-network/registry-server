@@ -85,7 +85,8 @@ begin
       'image', v_project.image, 
       'location', v_project_location.feature, 
       'area', v_project.area, 
-      'areaUnit', v_project.area_unit
+      'areaUnit', v_project.area_unit,
+      'metadata', v_project.metadata
     )
   into result_record;
 
