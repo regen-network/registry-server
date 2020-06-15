@@ -9,6 +9,12 @@ module.exports = {
         usePolling: true,
       },
       log: true,
+      env: {
+        NODE_ENV: "development",
+      },
+      env_production: {
+        NODE_ENV: "production",
+      }
     },
     {
       name: "worker",
@@ -20,6 +26,12 @@ module.exports = {
       },
       cwd: "server/",
       log: true,
+      env: {
+        NODE_ENV: "development",
+      },
+      env_production: {
+        NODE_ENV: "production",
+      }
     },
     // {
     //   name: 'docker-compose',

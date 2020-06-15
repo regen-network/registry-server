@@ -51,11 +51,9 @@ const pgPoolConfig: PoolConfig = {
 
 if (process.env.NODE_ENV === 'production') {
   pgPoolConfig.ssl = {
-    ca: fs.readFileSync('../config/rds-combined-ca-bundle.pem'),
+    ca: fs.readFileSync(`${__dirname}/../config/rds-combined-ca-bundle.pem`),
   };
 }
-
-console.log(pgPoolConfig);
 
 const pgPool = new Pool(pgPoolConfig);
 
