@@ -92,5 +92,5 @@ begin
 
   return result_record;
 end;
-$$ language plpgsql volatile security definer
+$$ language plpgsql volatile 
 set search_path = pg_catalog, public, pg_temp;

@@ -131,6 +131,13 @@ begin
   -- buyer's name
   select name into v_buyer_name from party where wallet_id = buyer_wallet_id;
 
+  perform graphile_worker
+    .add_job
+    (
+      'hello',
+      json_build_object
+      ('name', 'KITTY')
+      );
   return jsonb_build_object(
     'purchaseId', v_purchase_id,
     'project', v_project,
@@ -141,6 +148,6 @@ begin
     'ownerName', v_buyer_name
   );
 end;
-$$ language plpgsql strict volatile
+$$ language plpgsql strict volatile security definer
 set search_path
 to pg_catalog, public, pg_temp;

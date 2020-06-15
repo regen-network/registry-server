@@ -11,6 +11,7 @@ import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
 import * as fs from 'fs';
+import { run } from "graphile-worker";
 
 import { SendEmailPayload, sendEmail } from './email';
 import { dateFormat, numberFormat } from './format';
@@ -53,6 +54,8 @@ if (process.env.NODE_ENV === 'production') {
     ca: fs.readFileSync('../config/rds-combined-ca-bundle.pem'),
   };
 }
+
+console.log(pgPoolConfig);
 
 const pgPool = new Pool(pgPoolConfig);
 
@@ -177,6 +180,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
   }
 
   // Send confirmation email
+  // (we might start using https://github.com/graphile/worker in the future)
   const { project, ownerName, purchaseId, creditClass } = qres.rows[0]['transfer_credits'];
   
   const sendEmailPayload: SendEmailPayload = {
@@ -228,7 +232,6 @@ app.use(postgraphile(pgPool, 'public', {
     } else return { role: 'app_user' };
    }
 }));
-
 
 const port = process.env.PORT || 5000;
 

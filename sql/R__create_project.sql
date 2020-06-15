@@ -20,7 +20,7 @@ begin
 
 return v_org;
 end;
-$$ language plpgsql volatile security definer
+$$ language plpgsql volatile 
 set search_path
 = pg_catalog, public, pg_temp;
 
@@ -44,7 +44,7 @@ begin
 
   return v_org;
 end;
-$$ language plpgsql volatile security definer
+$$ language plpgsql volatile
 set search_path = pg_catalog, public, pg_temp;
 
 create or replace function private.really_create_project(
@@ -89,5 +89,5 @@ begin
 
   return v_project;
 end;
-$$ language plpgsql volatile security definer
+$$ language plpgsql volatile
 set search_path = pg_catalog, public, pg_temp;
