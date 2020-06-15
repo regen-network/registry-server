@@ -15,6 +15,7 @@ import { run } from "graphile-worker";
 
 import { SendEmailPayload, sendEmail } from './email';
 import { dateFormat, numberFormat } from './format';
+import { main as workerMain } from './worker';
 
 const app = express();
 const stripe = require('stripe')(process.env.STRIPE_API_KEY);
@@ -56,6 +57,11 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const pgPool = new Pool(pgPoolConfig);
+
+workerMain(pgPool).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
 
 app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user

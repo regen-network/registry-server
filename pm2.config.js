@@ -33,18 +33,18 @@ module.exports = {
         NODE_ENV: "production",
       }
     },
-    // {
-    //   name: 'docker-compose',
-    //   script: 'docker-compose up',
-    //   cwd: 'server/',
-    //   log: true
-    // },
-    // {
-    //   name: 'web',
-    //   script: 'yarn start',
-    //   cwd: 'web/',
-    //   log: true
-    // }
+    {
+      name: 'docker-compose',
+      script: 'docker-compose up',
+      cwd: 'server/',
+      log: true
+    },
+    {
+      name: 'web',
+      script: 'yarn start',
+      cwd: 'web/',
+      log: true
+    }
   ],
   deploy: {},
 };
