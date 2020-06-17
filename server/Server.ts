@@ -11,11 +11,10 @@ import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
 import * as fs from 'fs';
-import { run } from "graphile-worker";
+import { run } from 'graphile-worker';
 
-import { SendEmailPayload, sendEmail } from './email';
-import { dateFormat, numberFormat } from './format';
-import { main as workerMain } from './worker';
+// import { SendEmailPayload, sendEmail } from './email';
+import { main as workerMain } from './worker/worker';
 
 const app = express();
 const stripe = require('stripe')(process.env.STRIPE_API_KEY);
@@ -100,7 +99,7 @@ app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Respon
 
 app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
-  let event, client, qres, item, customerEmail: string;
+  let event, client, qres, item;
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_ENDPOINT_SECRET);
@@ -120,7 +119,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
     case 'invoice.payment_succeeded':
       const invoice = event.data.object;
       const lines = invoice.lines.data;
-      customerEmail = invoice['customer_email'];
+
       if (lines.length) {
         item = lines[0];
         try {
@@ -136,6 +135,8 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
               "succeeded",
               invoice.id,
               "stripe_invoice",
+              item.currency,
+              invoice["customer_email"],
             ]
           );
         } catch (err) {
@@ -149,7 +150,6 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
     case 'checkout.session.completed':
       const session = event.data.object;
       const clientReferenceId = session['client_reference_id']; // buyer wallet id and address id
-      customerEmail = session['customer_email'];
 
       const items = session['display_items'];
       if (items.length) {
@@ -160,9 +160,21 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
             const { walletId, addressId } = JSON.parse(clientReferenceId);
 
             // Transfer credits
-            qres = await client.query('SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8)',
-            [product.metadata.vintage_id, walletId, addressId,
-            item.quantity, item.amount / 100, 'succeeded', session.id, 'stripe_checkout']);
+            qres = await client.query(
+              "SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10)",
+              [
+                product.metadata.vintage_id,
+                walletId,
+                addressId,
+                item.quantity,
+                item.amount / 100,
+                "succeeded",
+                session.id,
+                "stripe_checkout",
+                item.currency,
+                session["customer_email"],
+              ]
+            );
           } catch (err) {
             res.sendStatus(500);
             console.error('Error transfering credits', err);
@@ -181,41 +193,6 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
     default:
       // Unexpected event type
       return res.status(400).end();
-  }
-
-  // Send confirmation email
-  // (we might start using https://github.com/graphile/worker in the future)
-  const { project, ownerName, purchaseId, creditClass } = qres.rows[0]['transfer_credits'];
-  
-  const sendEmailPayload: SendEmailPayload = {
-    options: {
-      to: customerEmail,
-      subject: 'Your Regen Registry purchase was successful',
-    },
-    template: 'confirm_credits_transfer.mjml',
-    variables: {
-      purchaseId,
-      ownerName,
-      projectName: project.name,
-      projectImage: project.image,
-      projectLocation: project.location.place_name,
-      projectArea: project.area,
-      projectAreaUnit: project.areaUnit,
-      projectLink: project.metadata.url,
-      creditClassName: creditClass.name,
-      creditClassType: creditClass.metadata.type,
-      quantity: item.quantity,
-      amount: numberFormat.format(item.amount / 100),
-      currency: item.currency.toUpperCase(),
-      date: dateFormat.format(new Date()),
-    },
-  };
-  try {
-    await sendEmail(sendEmailPayload);
-    res.json({ received: true });
-  } catch (err) {
-    res.sendStatus(500);
-    console.error('Error sending email', err);
   }
 });
 

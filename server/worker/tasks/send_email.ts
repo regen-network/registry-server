@@ -5,7 +5,7 @@ import mjml2html = require('mjml');
 import { template as lodashTemplate } from 'lodash';
 import { promises as fsp } from 'fs';
 import * as html2text from 'html-to-text';
-
+import { Task } from 'graphile-worker';
 const { readFile } = fsp;
 
 // create Nodemailer SES transporter
@@ -30,7 +30,8 @@ export interface SendEmailPayload {
   };
 }
 
-export async function sendEmail(payload: SendEmailPayload) {
+const task: Task = async (inPayload) => {
+  const payload: SendEmailPayload = inPayload as any;
   const { options: inOptions, template, variables } = payload;
   const options = {
     from: process.env.SES_EMAIL || 'marie@regen.network',
@@ -54,6 +55,8 @@ export async function sendEmail(payload: SendEmailPayload) {
   }
 }
 
+export default task;
+
 const templatePromises = {};
 function loadTemplate(template: string) {
   if (!templatePromises[template]) {
@@ -62,7 +65,7 @@ function loadTemplate(template: string) {
         throw new Error(`Disallowed template name '${template}'`);
       }
       const templateString = await readFile(
-        `${__dirname}/templates/${template}`,
+        `${__dirname}/../templates/${template}`,
         'utf8'
       );
       const templateFn = lodashTemplate(templateString, {
@@ -80,4 +83,14 @@ function loadTemplate(template: string) {
   }
   return templatePromises[template];
 }
+
+export const dateFormat = new Intl.DateTimeFormat("en", {
+  year: "numeric",
+  month: "short",
+  day: "2-digit",
+});
+
+export const numberFormat = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+});
 

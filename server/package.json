@@ -31,11 +31,14 @@
     "postgraphile": "^4.7.0",
     "stripe": "^8.53.0",
     "ts-node": "^8.10.2",
-    "typescript": "3.8.3",
+    "typescript": "^3.9.5",
     "unzipper": "^0.9.4",
     "xmldom": "^0.1.27"
   },
   "scripts": {
-    "start": "ts-node Server.ts"
+    "start": "ts-node Server.ts",
+    "build": "yarn remove-dist && tsc -b",
+    "remove-dist": "shx rm -rf ./worker/dist/**",
+    "watch": "yarn remove-dist && tsc --watch"
   }
 }

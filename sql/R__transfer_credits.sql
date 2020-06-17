@@ -7,7 +7,9 @@ create or replace function transfer_credits(
   tx_state transaction_state,
   broker_id uuid default uuid_nil(),
   stripe_id text default '',
-  p_type purchase_type default 'offline'::purchase_type
+  p_type purchase_type default 'offline'::purchase_type,
+  currency char(10) default 'USD',
+  contact_email text default ''
 ) returns jsonb as $$
 declare
   v_user "user";
@@ -28,6 +30,7 @@ declare
   v_credit_class_id uuid;
   v_credit_class_version credit_class_version;
   v_buyer_name text;
+  v_email text;
 begin
   -- get number of available credits left for transfer
   -- (ie credits that are still part of the project stakeholders' liquid balances)
@@ -131,13 +134,31 @@ begin
   -- buyer's name
   select name into v_buyer_name from party where wallet_id = buyer_wallet_id;
 
+  -- buyer's contact email
+  if contact_email = '' then
+    select * into v_email from get_wallet_contact_email(buyer_wallet_id);
+  else
+    v_email = contact_email;
+  end if;
+
   perform graphile_worker
     .add_job
     (
-      'hello',
-      json_build_object
-      ('name', 'KITTY')
-      );
+      'credits_transfer__send_confirmation',
+      json_build_object(
+        'purchaseId', v_purchase_id,
+        'project', v_project,
+        'creditClass', jsonb_build_object(
+          'name', v_credit_class_version.name,
+          'metadata', v_credit_class_version.metadata
+        ),
+        'ownerName', v_buyer_name,
+        'quantity', units,
+        'amount', credit_price * units,
+        'currency', currency,
+        'email', v_email
+      )
+    );
   return jsonb_build_object(
     'purchaseId', v_purchase_id,
     'project', v_project,

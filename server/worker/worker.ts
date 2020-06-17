@@ -1,4 +1,4 @@
-const { run, quickAddJob } = require("graphile-worker");
+const { run, quickAddJob } = require('graphile-worker');
 
 export async function main(pgPool) {
   // Run a worker to execute jobs:
@@ -8,6 +8,6 @@ export async function main(pgPool) {
     // Install signal handlers for graceful shutdown on SIGINT, SIGTERM, etc
     noHandleSignals: false,
     pollInterval: 1000,
-    taskDirectory: `${__dirname}/tasks`,
+    taskDirectory: `${__dirname}/dist`,
   });
 }
