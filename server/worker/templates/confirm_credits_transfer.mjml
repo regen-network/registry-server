@@ -85,7 +85,7 @@
       	position: absolute;
       	bottom: 30px;
       	left: 30px;
-        font-family: Muli;
+        font-family: Muli, sans-serif;
      		background: #3D7ACF;
         box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.1);
         border-radius: 50px;
@@ -96,14 +96,14 @@
       }
       .summary-item {
       	text-transform: uppercase;
-        font-family: Muli;
+        font-family: Muli, sans-serif;
         font-weight: 800;
         font-size: 14px;
       	color: #8F8F8F;
       	vertical-align: baseline;
       }
       .summary-content {
-        font-family: Lato;
+        font-family: Lato, sans-serif;
         font-size: 18px;
       	color: #000;
       	vertical-align: baseline;
@@ -122,7 +122,7 @@
       	padding-right: 0 !important;
       	padding-left: 0 !important;
       }
-      .social-column td, .social-section, .social-section table {
+      .social-column-down td, .social-section-down, .social-section-down table {
         border-bottom-left-radius: 5px;
         border-bottom-right-radius: 5px;
       }
@@ -131,7 +131,7 @@
         border-top-right-radius: 5px;
       }
       .connect {
-        font-family: Muli;
+        font-family: Muli, sans-serif;
         font-weight: 800;
         letter-spacing: 1px;
         text-transform: uppercase;
@@ -143,8 +143,8 @@
     
     <mj-attributes>
       <mj-class name="background" background-color="#f9f9f9" font-size="13px" />
-      <mj-class name="muli-text" font-family="Muli" font-weight="900" padding-left="0px" padding-right="0px" />
-      <mj-class name="grey-text" padding-left="0px" padding-right="0px" align="center" color="#545555" font-family="Lato" />
+      <mj-class name="muli-text" font-family="Muli,sans-serif" font-weight="900" padding-left="0px" padding-right="0px" />
+      <mj-class name="grey-text" padding-left="0px" padding-right="0px" align="center" color="#545555" font-family="Lato,sans-serif" />
     </mj-attributes>
   </mj-head>
 
@@ -283,11 +283,15 @@
         
       </mj-column>
     </mj-section>
-    <mj-section css-class="social-section" background-color="#D2D5D9" padding-left="1px" padding-right="1px" padding-bottom="1px" padding-top="0px">
-      <mj-column padding="40px" css-class="social-column" width="100%" background-color="#F4F4F4">
+    <mj-section background-color="#D2D5D9" padding-left="1px" padding-right="1px" padding-bottom="0px" padding-top="0px">
+      <mj-column padding-left="40px" padding-right="40px" padding-top="40px" width="100%" background-color="#F4F4F4">
         <mj-text align="center">
           <div class="connect">connect</div>
         </mj-text>
+		</mj-column>
+    </mj-section>
+    <mj-section css-class="social-section-down" background-color="#D2D5D9" padding-left="1px" padding-right="1px" padding-bottom="1px" padding-top="0px">
+    <mj-column padding-left="40px" padding-right="40px" padding-bottom="40px" css-class="social-column-down" width="100%" background-color="#F4F4F4">
 				<mj-table align="center" width="242px">
           <tr>
             <td>
