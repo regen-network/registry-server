@@ -117,7 +117,6 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
   // Handle the event
   switch (event.type) {
     case 'invoice.payment_succeeded':
-      console.log('INVOICE')
       const invoice = event.data.object;
       const lines = invoice.lines.data;
 
@@ -130,9 +129,9 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
             [
               invoice.metadata.vintage_id,
               invoice.metadata.wallet_id,
-              invoice.metadata.address_id,
+              invoice.metadata.home_address_id,
               item.quantity,
-              item.amount / 100,
+              (item.amount / 100) / item.quantity,
               "succeeded",
               invoice.id,
               "stripe_invoice",
@@ -150,7 +149,6 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
       }
       break;
     case 'checkout.session.completed':
-      console.log("CHECKOUT");
       const session = event.data.object;
       const clientReferenceId = session['client_reference_id']; // buyer wallet id and address id
 
@@ -170,7 +168,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
                 walletId,
                 addressId,
                 item.quantity,
-                item.amount / 100,
+                (item.amount / 100) / item.quantity,
                 "succeeded",
                 session.id,
                 "stripe_checkout",
