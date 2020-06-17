@@ -43,9 +43,9 @@ const task: Task = async (inPayload, { addJob }) => {
   const sendEmailPayload: SendEmailPayload = {
     options: {
       to: email,
-      subject: "Your Regen Registry purchase was successful",
+      subject: 'Your Regen Registry purchase was successful',
     },
-    template: "confirm_credits_transfer.mjml",
+    template: 'confirm_credits_transfer.mjml',
     variables: {
       purchaseId,
       ownerName,

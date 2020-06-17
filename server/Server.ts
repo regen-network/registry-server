@@ -99,7 +99,7 @@ app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Respon
 
 app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
-  let event, client, qres, item;
+  let event, client, item;
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_ENDPOINT_SECRET);
@@ -117,6 +117,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
   // Handle the event
   switch (event.type) {
     case 'invoice.payment_succeeded':
+      console.log('INVOICE')
       const invoice = event.data.object;
       const lines = invoice.lines.data;
 
@@ -124,8 +125,8 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
         item = lines[0];
         try {
           // Transfer credits
-          qres = await client.query(
-            "SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8)",
+          await client.query(
+            "SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10)",
             [
               invoice.metadata.vintage_id,
               invoice.metadata.wallet_id,
@@ -148,6 +149,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
       }
       break;
     case 'checkout.session.completed':
+      console.log("CHECKOUT");
       const session = event.data.object;
       const clientReferenceId = session['client_reference_id']; // buyer wallet id and address id
 
@@ -160,7 +162,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
             const { walletId, addressId } = JSON.parse(clientReferenceId);
 
             // Transfer credits
-            qres = await client.query(
+            await client.query(
               "SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10)",
               [
                 product.metadata.vintage_id,
