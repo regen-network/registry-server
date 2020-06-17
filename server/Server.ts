@@ -140,6 +140,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
               invoice["customer_email"],
             ]
           );
+          res.sendStatus(200);
         } catch (err) {
           res.sendStatus(500);
           console.error('Error transfering credits', err);
@@ -177,6 +178,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
                 session["customer_email"],
               ]
             );
+            res.sendStatus(200);
           } catch (err) {
             res.sendStatus(500);
             console.error('Error transfering credits', err);
