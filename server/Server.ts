@@ -168,7 +168,7 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, r
                 walletId,
                 addressId,
                 item.quantity,
-                (item.amount / 100) / item.quantity,
+                item.amount / 100,
                 "succeeded",
                 session.id,
                 "stripe_checkout",
