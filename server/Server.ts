@@ -1,5 +1,6 @@
 import * as express from 'express';
 import * as path from 'path';
+import * as Airtable from 'airtable';
 import { Pool, Client, PoolConfig } from 'pg';
 import { postgraphile } from 'postgraphile';
 import * as PgManyToManyPlugin from '@graphile-contrib/pg-many-to-many';
@@ -16,21 +17,17 @@ import { run } from 'graphile-worker';
 // import { SendEmailPayload, sendEmail } from './email';
 import { main as workerMain } from './worker/worker';
 
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 const app = express();
+
 const stripe = require('stripe')(process.env.STRIPE_API_KEY);
+const airtableBase = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE);
 
 app.use(fileUpload());
 app.use(cors());
-
-// app.use('/.storybook/', express.static(path.join(__dirname, '../web/build/storybook')));
-// app.get('/.storybook/*', function (req, res) {
-//   res.sendFile(path.join(__dirname, '../web/build/storybook', 'index.html'));
-// });
-
-// app.use('/', express.static(path.join(__dirname, '../web/build')));
-// app.get('/*', function (req, res) {
-//   res.sendFile(path.join(__dirname, '../web/build', 'index.html'));
-// });
 
 app.use(jwt({
   secret: jwks.expressJwtSecret({
@@ -60,6 +57,32 @@ const pgPool = new Pool(pgPoolConfig);
 workerMain(pgPool).catch((err) => {
   console.error(err);
   process.exit(1);
+});
+
+app.post('/buyers-info', bodyParser.json(), (req, res: express.Response) => {
+  const { email, name, orgName, budget } = req.body;
+  airtableBase(process.env.AIRTABLE_BUYERS_TABLE).create(
+    [
+      {
+        fields: {
+          "Full Name": name,
+          "Email address": email,
+          "Organization Name": orgName,
+          Budget: budget,
+        },
+      },
+    ],
+    function (err, records) {
+      if (err) {
+        console.error(err);
+        res.status(400).send(err);
+      }
+      records.forEach(function (record) {
+        console.log(record.getId());
+      });
+      res.sendStatus(200);
+    }
+  );
 });
 
 app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Response) => {
