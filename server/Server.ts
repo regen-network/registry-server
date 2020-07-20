@@ -12,9 +12,7 @@ import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
 import * as fs from 'fs';
-import { run } from 'graphile-worker';
 
-// import { SendEmailPayload, sendEmail } from './email';
 import { main as workerMain } from './worker/worker';
 
 if (process.env.NODE_ENV !== 'production') {
@@ -54,7 +52,12 @@ if (process.env.NODE_ENV === 'production') {
 
 const pgPool = new Pool(pgPoolConfig);
 
-workerMain(pgPool).catch((err) => {
+let runner;
+workerMain(pgPool)
+  .then((res) => {
+    runner = res;
+  })
+  .catch((err) => {
   console.error(err);
   process.exit(1);
 });
@@ -77,10 +80,15 @@ app.post('/buyers-info', bodyParser.json(), (req, res: express.Response) => {
         console.error(err);
         res.status(400).send(err);
       }
-      records.forEach(function (record) {
-        console.log(record.getId());
-      });
-      res.sendStatus(200);
+      if (runner) {
+        runner.addJob('interest_buyers__send_confirmation', { email }).then(() => {
+          res.sendStatus(200);
+        }, (err) => {
+          res.status(400).send(err);
+        });
+      } else {
+        res.sendStatus(200);
+      }
     }
   );
 });

@@ -1,4 +1,4 @@
-const { run, quickAddJob } = require('graphile-worker');
+const { run } = require('graphile-worker');
 
 export async function main(pgPool) {
   // Run a worker to execute jobs:
@@ -10,4 +10,5 @@ export async function main(pgPool) {
     pollInterval: 1000,
     taskDirectory: `${__dirname}/dist`,
   });
+  return runner;
 }
