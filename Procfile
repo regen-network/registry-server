@@ -1,2 +1,2 @@
-release: yarn migrate
+release: yarn migrate && yarn build
 web: yarn serve
