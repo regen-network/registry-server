@@ -17,12 +17,18 @@
         #summary {
           font-size: 16px !important;
         }
+        .group {
+          width: 100%;
+        }
       }
     </mj-style>
     <mj-style inline="inline">
       a {
       	text-decoration: none;
       	color: #4FB573;
+      }
+      .group {
+        width: 50%;
       }
       .bottom-link {
         font-size: 16px;
@@ -92,20 +98,20 @@
         </mj-text>
 		  </mj-column>
     </mj-section>
-    
-    <mj-section padding-top="20px" border-right="1px solid #D2D5D9" border-left="1px solid #D2D5D9" background-color="#F4F4F4" padding-top="0px">
+
+    <mj-section padding-left="1%" padding-top="20px" border-right="1px solid #D2D5D9" border-left="1px solid #D2D5D9" background-color="#F4F4F4" padding-top="0px">
       <mj-group width="50%">
-        <mj-column>
-          <mj-image padding="2px" width="50px" href="https://www.instagram.com/regennetwork/" src="https://regen-registry.s3.amazonaws.com/Instagram.png" />
+        <mj-column padding="0px 1% 0px 0px" width="24%">
+          <mj-image align="center" padding="0px" width="50px" href="https://www.instagram.com/regennetwork/" src="https://regen-registry.s3.amazonaws.com/Instagram.png" />
       	</mj-column>
-        <mj-column>
-          <mj-image padding="2px" width="50px" href="https://www.linkedin.com/company/regen-network/" src="https://regen-registry.s3.amazonaws.com/LinkedIn.png" />
+        <mj-column padding="0px 1% 0px 0px" width="24%">
+          <mj-image align="center" padding="0px" width="50px" href="https://www.linkedin.com/company/regen-network/" src="https://regen-registry.s3.amazonaws.com/LinkedIn.png" />
         </mj-column>
-        <mj-column>
-          <mj-image padding="2px" width="50px" href="https://facebook.com/weareregennetwork" src="https://regen-registry.s3.amazonaws.com/Facebook.png" />
+        <mj-column padding="0px" width="25%">
+          <mj-image align="center" padding="0px" width="50px" href="https://facebook.com/weareregennetwork" src="https://regen-registry.s3.amazonaws.com/Facebook.png" />
         </mj-column>
-        <mj-column>
-          <mj-image padding="2px" width="50px" href="http://t.me/regennetwork_public" src="https://regen-registry.s3.amazonaws.com/Telegram.png" />
+        <mj-column padding="0px" width="25%">
+          <mj-image align="center" padding="0px" width="50px" href="http://t.me/regennetwork_public" src="https://regen-registry.s3.amazonaws.com/Telegram.png" />
         </mj-column>
       </mj-group>
     </mj-section>
@@ -120,7 +126,9 @@
       <mj-column>
         <mj-image width="87px" src="https://regen-registry.s3.amazonaws.com/Black.png" />
         <mj-text mj-class="grey-text">
-          <a class="bottom-link" style="text-decoration: none; color: #545555;" href="hello@regen.network">hello@regen.network</a>
+          <a class="bottom-link" style="text-decoration: none; color: #545555;" href="mailto:hello@regen.network">hello@regen.network</a>
+          &nbsp;
+          <span class="bottom-link" style="color: #4FB573">·</span>
           &nbsp;
           <a class="bottom-link" style="text-decoration: none; color: #545555;" href="https://www.regen.network/">www.regen.network</a>
         </mj-text>
