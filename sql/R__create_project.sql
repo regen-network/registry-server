@@ -1,3 +1,29 @@
+create or replace function public.create_user_organization_if_needed
+(
+  email text,
+  name text,
+  avatar text,
+  org_name text,
+  wallet_addr bytea,
+  roles text[] default null,
+  org_address jsonb default null,
+  updates boolean default false
+) returns organization as $$
+declare
+  v_user "user";
+  v_org organization;
+begin
+  v_user := public.really_create_user_if_needed
+(email, name, null, null, roles, null, name::bytea, updates);
+  v_org := public.really_create_organization_if_needed
+(org_name, wallet_addr, v_user.id, roles, org_address);
+
+return v_org;
+end;
+$$ language plpgsql volatile 
+set search_path
+= pg_catalog, public, pg_temp;
+
 create or replace function public.create_user_organization(
   email text,
   name text,
@@ -6,7 +32,7 @@ create or replace function public.create_user_organization(
   wallet_addr bytea,
   roles text[] default null,
   org_address jsonb default null
-) returns uuid as $$
+) returns organization as $$
 declare
   v_user "user";
   v_org organization;
@@ -16,9 +42,9 @@ begin
   v_org := public.really_create_organization
     (org_name, wallet_addr, v_user.id, roles, org_address);
 
-  return v_org.party_id;
+  return v_org;
 end;
-$$ language plpgsql volatile security definer
+$$ language plpgsql volatile
 set search_path = pg_catalog, public, pg_temp;
 
 create or replace function private.really_create_project(
@@ -63,5 +89,5 @@ begin
 
   return v_project;
 end;
-$$ language plpgsql volatile security definer
+$$ language plpgsql volatile
 set search_path = pg_catalog, public, pg_temp;

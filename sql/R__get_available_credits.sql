@@ -10,12 +10,14 @@ begin
   as (
     available_credits numeric,
     initial_distribution jsonb,
+    credit_class_id uuid,
     developer_id uuid,
     land_owner_id uuid,
     steward_id uuid,
     developer_wallet_id uuid,
     land_owner_wallet_id uuid,
-    steward_wallet_id uuid
+    steward_wallet_id uuid,
+    project jsonb
   );
   return v_available_credits;
 end;
@@ -33,6 +35,7 @@ declare
   v_land_owner_wallet_id uuid;
   v_steward_wallet_id uuid;
   v_available_credits numeric;
+  v_project_location address;
 begin
   -- get credit vintage
   select *
@@ -55,9 +58,9 @@ begin
   end if;
 
   -- get wallet ids of project's stakeholders
-  select get_party_wallet_id(v_project.developer_id) into v_developer_wallet_id;
-  select get_party_wallet_id(v_project.land_owner_id) into v_land_owner_wallet_id;
-  select get_party_wallet_id(v_project.steward_id) into v_steward_wallet_id;
+  select wallet_id from party into v_developer_wallet_id where id = v_project.developer_id;
+  select wallet_id from party into v_land_owner_wallet_id where id = v_project.land_owner_id;
+  select wallet_id from party into v_steward_wallet_id where id = v_project.steward_id;
 
   select sum(liquid_balance)
   into v_available_credits
@@ -65,14 +68,29 @@ begin
   where (wallet_id = v_developer_wallet_id or wallet_id = v_land_owner_wallet_id or wallet_id = v_steward_wallet_id)
   and credit_vintage_id = vintage_id;
 
+-- project location
+  select *
+  from address
+  into v_project_location
+  where id = v_project.address_id;
+
   select
     v_available_credits,
     v_credit_vintage.initial_distribution,
+    v_credit_vintage.credit_class_id,
     v_project.developer_id, v_project.land_owner_id, v_project.steward_id,
-    v_developer_wallet_id, v_land_owner_wallet_id, v_steward_wallet_id
+    v_developer_wallet_id, v_land_owner_wallet_id, v_steward_wallet_id,
+    jsonb_build_object(
+      'name', v_project.name, 
+      'image', v_project.image, 
+      'location', v_project_location.feature, 
+      'area', v_project.area, 
+      'areaUnit', v_project.area_unit,
+      'metadata', v_project.metadata
+    )
   into result_record;
 
   return result_record;
 end;
-$$ language plpgsql volatile security definer
+$$ language plpgsql volatile 
 set search_path = pg_catalog, public, pg_temp;

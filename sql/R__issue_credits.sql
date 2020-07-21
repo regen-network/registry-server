@@ -72,8 +72,12 @@ begin
   end if;
 
   -- get issuer's wallet id
-  select get_party_wallet_id(v_issuer_organization.party_id)
-  into v_issuer_wallet_id;
+  -- select get_party_wallet_id(v_issuer_organization.party_id)
+  -- into v_issuer_wallet_id;
+  select wallet_id
+  from party
+  into v_issuer_wallet_id where id = v_issuer_organization.party_id;
+
 
   if v_issuer_wallet_id is null then
     raise exception 'Issuer must have a wallet' using errcode = 'NTFND';
@@ -115,21 +119,27 @@ begin
           if v_project.developer_id is null then
             raise exception 'Project does not have any project developer' using errcode = 'NTFND';
           end if;
-          select get_party_wallet_id(v_project.developer_id) into v_issuee_id;
+          -- select get_party_wallet_id(v_project.developer_id) into v_issuee_id;
+          select wallet_id from party into v_issuee_id where id = v_project.developer_id;
+          
         end if;
 
         if v_key = 'landOwner' then
           if v_project.land_owner_id is null then
             raise exception 'Project does not have any land owner' using errcode = 'NTFND';
           end if;
-          select get_party_wallet_id(v_project.land_owner_id) into v_issuee_id;
+          -- select get_party_wallet_id(v_project.land_owner_id) into v_issuee_id;
+          select wallet_id from party into v_issuee_id where id = v_project.land_owner_id;
+
         end if;
 
         if v_key = 'landSteward' then
           if v_project.steward_id is null then
             raise exception 'Project does not have any land steward' using errcode = 'NTFND';
           end if;
-          select get_party_wallet_id(v_project.steward_id) into v_issuee_id;
+          -- select get_party_wallet_id(v_project.steward_id) into v_issuee_id;
+          select wallet_id from party into v_issuee_id where id = v_project.steward_id;
+
         end if;
 
         insert into account_balance

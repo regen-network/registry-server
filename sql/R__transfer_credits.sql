@@ -7,8 +7,10 @@ create or replace function transfer_credits(
   tx_state transaction_state,
   broker_id uuid default uuid_nil(),
   stripe_id text default '',
-  p_type purchase_type default 'offline'::purchase_type
-) returns uuid as $$
+  p_type purchase_type default 'offline'::purchase_type,
+  currency char(10) default 'USD',
+  contact_email text default ''
+) returns jsonb as $$
 declare
   v_user "user";
   v_initial_distribution jsonb;
@@ -24,50 +26,37 @@ declare
   v_from uuid;
   v_buyer_account_balance account_balance;
   v_purchase_id uuid;
+  v_project jsonb;
+  v_credit_class_id uuid;
+  v_credit_class_version credit_class_version;
+  v_buyer_name text;
+  v_email text;
 begin
-  -- Make sure that current user can transfer credits
-  if public.get_current_user() is null then
-    raise exception 'You must log in to issue credits' using errcode = 'LOGIN';
-  end if;
-
-  -- find user
-  select *
-  into v_user
-  from "user"
-  where auth0_sub = public.get_current_user();
-
-  if v_user.id is null then
-    raise exception 'User not found' using errcode = 'NTFND';
-  end if;
-
-  -- Only admin users allowed to transfer credits for now
-  -- XXX Later on, project stakeholders (all of them or only project developer?)
-  -- should be able to transfer credits as well
-  if v_user.is_admin is false then
-    raise exception 'Only admin users can issue credits' using errcode = 'DNIED';
-  end if;
-
   -- get number of available credits left for transfer
   -- (ie credits that are still part of the project stakeholders' liquid balances)
   select * from get_available_credits_record(vintage_id)
   into
     v_available_credits,
     v_initial_distribution,
+    v_credit_class_id,
     v_developer_id,
     v_land_owner_id,
     v_steward_id,
     v_developer_wallet_id,
     v_land_owner_wallet_id,
-    v_steward_wallet_id
+    v_steward_wallet_id,
+    v_project
   as (
     available_credits numeric,
     initial_distribution jsonb,
+    credit_class_id uuid,
     developer_id uuid,
     land_owner_id uuid,
     steward_id uuid,
     developer_wallet_id uuid,
     land_owner_wallet_id uuid,
-    steward_wallet_id uuid
+    steward_wallet_id uuid,
+    project jsonb
   );
 
   if units > v_available_credits then
@@ -135,8 +124,51 @@ begin
   where account_balance.credit_vintage_id = vintage_id and account_balance.wallet_id = buyer_wallet_id
   returning * into v_buyer_account_balance;
 
-  return v_purchase_id;
+  -- build jsonb response
+  -- credit class info
+  select * from credit_class_version
+  into v_credit_class_version
+  where id = v_credit_class_id
+  order by created_at desc limit 1;
+
+  -- buyer's name
+  select name into v_buyer_name from party where wallet_id = buyer_wallet_id;
+
+  -- buyer's contact email
+  if contact_email = '' then
+    select * into v_email from get_wallet_contact_email(buyer_wallet_id);
+  else
+    v_email = contact_email;
+  end if;
+
+  perform graphile_worker
+    .add_job
+    (
+      'credits_transfer__send_confirmation',
+      json_build_object(
+        'purchaseId', v_purchase_id,
+        'project', v_project,
+        'creditClass', jsonb_build_object(
+          'name', v_credit_class_version.name,
+          'metadata', v_credit_class_version.metadata
+        ),
+        'ownerName', v_buyer_name,
+        'quantity', units,
+        'amount', credit_price * units,
+        'currency', currency,
+        'email', v_email
+      )
+    );
+  return jsonb_build_object(
+    'purchaseId', v_purchase_id,
+    'project', v_project,
+    'creditClass', jsonb_build_object(
+      'name', v_credit_class_version.name,
+      'metadata', v_credit_class_version.metadata
+    ),
+    'ownerName', v_buyer_name
+  );
 end;
-$$ language plpgsql strict volatile
+$$ language plpgsql strict volatile security definer
 set search_path
 to pg_catalog, public, pg_temp;
