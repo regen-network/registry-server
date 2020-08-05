@@ -18,7 +18,7 @@
     "dotenv": "^8.2.0",
     "etl": "0.6.12",
     "express": "4.17.1",
-    "express-fileupload": "^0.4.0",
+    "express-fileupload": "^1.1.9",
     "express-jwt": "5.3.1",
     "graphile-build-pg": "^4.5.3",
     "graphile-worker": "^0.6.0",
