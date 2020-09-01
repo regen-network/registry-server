@@ -114,7 +114,7 @@ begin
       end if;
   end loop;
 
-  -- create new account balance for the buyer
+  -- create new account balance (or update) for the buyer
   insert into account_balance
     (credit_vintage_id, wallet_id, liquid_balance, burnt_balance)
   values

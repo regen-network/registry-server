@@ -128,7 +128,7 @@ begin
     if v_auth_user_id is null then
       select *
       into v_user
-      from public.really_create_user(email, name, avatar, sub, roles, null, name::bytea);
+      from public.really_create_user(email, name, avatar, sub, roles, null, name::bytea, false);
     end if;
   end if;
 
