@@ -62,6 +62,7 @@ workerMain(pgPool)
   process.exit(1);
 });
 
+// TODO move to ./routes/
 app.post('/buyers-info', bodyParser.json(), (req, res: express.Response) => {
   const { email, name, orgName, budget } = req.body;
   airtableBase(process.env.AIRTABLE_BUYERS_TABLE).create(
@@ -246,6 +247,8 @@ app.use(postgraphile(pgPool, 'public', {
     } else return { role: 'app_user' };
    }
 }));
+
+app.use(require('./routes/mailerlite'));
 
 const port = process.env.PORT || 5000;
 
