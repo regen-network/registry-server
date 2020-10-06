@@ -1,7 +1,5 @@
 import * as express from 'express';
 import * as path from 'path';
-import * as Airtable from 'airtable';
-import { Pool, Client, PoolConfig } from 'pg';
 import { postgraphile } from 'postgraphile';
 import * as PgManyToManyPlugin from '@graphile-contrib/pg-many-to-many';
 import * as jwks from 'jwks-rsa';
@@ -11,9 +9,8 @@ import * as cors from 'cors';
 import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
-import * as fs from 'fs';
 
-import { main as workerMain } from './worker/worker';
+const { pgPool } = require('./pool');
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
@@ -22,7 +19,6 @@ if (process.env.NODE_ENV !== 'production') {
 const app = express();
 
 const stripe = require('stripe')(process.env.STRIPE_API_KEY);
-const airtableBase = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE);
 
 app.use(fileUpload());
 app.use(cors());
@@ -39,60 +35,6 @@ app.use(jwt({
   issuer: 'https://regen-network-registry.auth0.com/',
   algorithms: ['RS256']
 }));
-
-const pgPoolConfig: PoolConfig = {
-  connectionString: process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn',
-};
-
-if (process.env.NODE_ENV === 'production') {
-  pgPoolConfig.ssl = {
-    ca: fs.readFileSync(`${__dirname}/../config/rds-combined-ca-bundle.pem`),
-  };
-}
-
-const pgPool = new Pool(pgPoolConfig);
-
-let runner;
-workerMain(pgPool)
-  .then((res) => {
-    runner = res;
-  })
-  .catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
-
-// TODO move to ./routes/
-app.post('/buyers-info', bodyParser.json(), (req, res: express.Response) => {
-  const { email, name, orgName, budget } = req.body;
-  airtableBase(process.env.AIRTABLE_BUYERS_TABLE).create(
-    [
-      {
-        fields: {
-          "Full Name": name,
-          "Email address": email,
-          "Organization Name": orgName,
-          Budget: budget,
-        },
-      },
-    ],
-    function (err, records) {
-      if (err) {
-        console.error(err);
-        res.status(400).send(err);
-      }
-      if (runner) {
-        runner.addJob('interest_buyers__send_confirmation', { email }).then(() => {
-          res.sendStatus(200);
-        }, (err) => {
-          res.status(400).send(err);
-        });
-      } else {
-        res.sendStatus(200);
-      }
-    }
-  );
-});
 
 app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user
@@ -249,6 +191,8 @@ app.use(postgraphile(pgPool, 'public', {
 }));
 
 app.use(require('./routes/mailerlite'));
+app.use(require('./routes/contact'));
+app.use(require('./routes/buyers-info'));
 
 const port = process.env.PORT || 5000;
 
