@@ -9,7 +9,8 @@ create or replace function transfer_credits(
   stripe_id text default '',
   p_type purchase_type default 'offline'::purchase_type,
   currency char(10) default 'USD',
-  contact_email text default ''
+  contact_email text default '',
+  auto_retire boolean default true
 ) returns jsonb as $$
 declare
   v_user "user";
@@ -139,6 +140,11 @@ begin
     select * into v_email from get_wallet_contact_email(buyer_wallet_id);
   else
     v_email = contact_email;
+  end if;
+
+  -- retire credits if auto_retire true
+  if auto_retire = true then
+    select * from retire_credits(vintage_id, buyer_wallet_id, address_id, units);
   end if;
 
   perform graphile_worker
