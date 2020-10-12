@@ -144,7 +144,7 @@ begin
 
   -- retire credits if auto_retire true
   if auto_retire = true then
-    select * from retire_credits(vintage_id, buyer_wallet_id, address_id, units);
+    perform retire_credits(vintage_id, buyer_wallet_id, address_id, units);
   end if;
 
   perform graphile_worker
