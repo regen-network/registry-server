@@ -47,7 +47,7 @@ const task: Task = async (inPayload, { addJob }) => {
     },
     template: 'confirm_credits_transfer.mjml',
     variables: {
-      purchaseId,
+      purchaseId: purchaseId.slice(0, 8),
       ownerName,
       projectName: project.name,
       projectImage: project.image,
