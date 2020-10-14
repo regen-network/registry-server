@@ -184,7 +184,7 @@
         <mj-table css-class="desktop-summary">
           <tr class="summary-row">
             <td class="summary-item">credit</td>
-            <td class="summary-content">[[creditClassName]]</td>
+            <td class="summary-content"><mj-raw>[[creditClassName]]</mj-raw></td>
           </tr>
           <tr class="summary-row">
             <td class="summary-item">project</td>
@@ -224,7 +224,7 @@
               credit
           	</div>
             <div class="summary-content">
-              [[creditClassName]]
+              <mj-raw>[[creditClassName]]</mj-raw>
           	</div>
           </div>
           <div class="summary-row">
@@ -235,7 +235,7 @@
               <a href="[[projectLink]]" class="project-name">[[projectName]]</a>
               <div class="project-info">
                 <img height="15px" src="https://regen-registry.s3.amazonaws.com/Small.png" />
-                <span>&nbsp;&nbsp;[[projectLocation]] | [[projectArea]][[projectAreaUnit]]</span>
+                <span>&nbsp;&nbsp;[[projectLocation]] | [[projectArea]] [[projectAreaUnit]]</span>
               </div>
           	</div>
           </div>
