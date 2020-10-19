@@ -147,6 +147,42 @@ begin
     perform retire_credits(vintage_id, buyer_wallet_id, address_id, units);
   end if;
 
+  perform send_transfer_credits_confirmation(
+    units,
+    credit_price,
+    currency,
+    v_purchase_id ,
+    v_credit_class_version,
+    v_buyer_name,
+    v_email,
+    v_project
+  );
+  
+  return jsonb_build_object(
+    'purchaseId', v_purchase_id,
+    'project', v_project,
+    'creditClass', jsonb_build_object(
+      'name', v_credit_class_version.name,
+      'metadata', v_credit_class_version.metadata
+    ),
+    'ownerName', v_buyer_name
+  );
+end;
+$$ language plpgsql strict volatile
+set search_path
+to pg_catalog, public, pg_temp;
+
+create or replace function send_transfer_credits_confirmation(
+  units numeric,
+  credit_price numeric,
+  currency char(10),
+  v_purchase_id uuid,
+  v_credit_class_version credit_class_version,
+  v_buyer_name text,
+  v_email text,
+  v_project jsonb
+) returns void as $$
+begin
   perform graphile_worker
     .add_job
     (
@@ -165,15 +201,6 @@ begin
         'email', v_email
       )
     );
-  return jsonb_build_object(
-    'purchaseId', v_purchase_id,
-    'project', v_project,
-    'creditClass', jsonb_build_object(
-      'name', v_credit_class_version.name,
-      'metadata', v_credit_class_version.metadata
-    ),
-    'ownerName', v_buyer_name
-  );
 end;
 $$ language plpgsql strict volatile security definer
 set search_path
