@@ -201,7 +201,7 @@
             <td class="summary-content">[[quantity]]</td>
           </tr>
           <tr class="summary-row">
-            <td class="summary-item">price</td>
+            <td class="summary-item">total price</td>
             <td class="summary-content">$[[amount]] [[currency]]</td>
           </tr>
           <tr class="summary-row">
@@ -249,7 +249,7 @@
           </div>
           <div class="summary-row">
             <div class="summary-item">
-              price
+              total price
           	</div>
             <div class="summary-content">
               [[amount]]
