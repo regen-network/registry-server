@@ -9,6 +9,7 @@ import * as cors from 'cors';
 import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
+const url = require('url');
 
 const { pgPool } = require('./pool');
 
@@ -16,10 +17,30 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
+const REGEN_HOSTNAME_PATTERN = /regen\.network$/;
+const NETLIFY_DEPLOY_PREVIEW_HOSTNAME_PATTERN = /deploy-preview-\d+--regen-website\.netlify\.app$/;
+
+const corsOptions = (req, callback) => {
+  let options;
+  if (process.env.NODE_ENV !== 'production') {
+    options = { origin: true };
+  } else {
+    const originURL = req.header('Origin') && url.parse(req.header('Origin'));
+    if (originURL && (originURL.hostname.match(REGEN_HOSTNAME_PATTERN) ||
+      originURL.hostname.match(NETLIFY_DEPLOY_PREVIEW_HOSTNAME_PATTERN))) {
+      options = { origin: true }; // reflect (enable) the requested origin in the CORS response
+    } else {
+      options = { origin: false }; // disable CORS for this request
+    }
+  }
+
+  callback(null, options) // callback expects two parameters: error and options
+}
+
 const app = express();
 
 app.use(fileUpload());
-app.use(cors());
+app.use(cors(corsOptions));
 
 app.use(jwt({
   secret: jwks.expressJwtSecret({
