@@ -40,7 +40,7 @@ router.post(
           try {
             // Transfer credits
             await client.query(
-              'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11)',
+              'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12)',
               [
                 invoice.metadata.vintage_id,
                 invoice.metadata.wallet_id,
@@ -53,6 +53,7 @@ router.post(
                 item.currency,
                 invoice['customer_email'],
                 true,
+                '',
               ]
             );
             res.sendStatus(200);
@@ -66,7 +67,7 @@ router.post(
         break;
       case 'checkout.session.completed':
         const session = event.data.object;
-        const clientReferenceId = session['client_reference_id']; // buyer wallet id and address id
+        const clientReferenceId = session['client_reference_id']; // buyer name, wallet id and address id
 
         const items = session['display_items'];
         if (items.length) {
@@ -74,11 +75,11 @@ router.post(
           try {
             const product = await stripe.products.retrieve(item.sku.product);
             try {
-              const { walletId, addressId } = JSON.parse(clientReferenceId);
+              const { name, walletId, addressId } = JSON.parse(clientReferenceId);
 
               // Transfer credits
               await client.query(
-                'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11)',
+                'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12)',
                 [
                   product.metadata.vintage_id,
                   walletId,
@@ -91,6 +92,7 @@ router.post(
                   item.currency,
                   session['customer_email'],
                   true,
+                  name,
                 ]
               );
               res.sendStatus(200);

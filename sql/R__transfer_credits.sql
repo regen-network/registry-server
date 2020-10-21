@@ -10,7 +10,8 @@ create or replace function transfer_credits(
   p_type purchase_type default 'offline'::purchase_type,
   currency char(10) default 'USD',
   contact_email text default '',
-  auto_retire boolean default true
+  auto_retire boolean default true,
+  buyer_name text default ''
 ) returns jsonb as $$
 declare
   v_user "user";
@@ -133,7 +134,11 @@ begin
   order by created_at desc limit 1;
 
   -- buyer's name
-  select name into v_buyer_name from party where wallet_id = buyer_wallet_id;
+  if buyer_name = '' then
+    select name into v_buyer_name from party where wallet_id = buyer_wallet_id;
+  else
+    v_buyer_name = buyer_name;
+  end if;
 
   -- buyer's contact email
   if contact_email = '' then
