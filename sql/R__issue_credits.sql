@@ -106,6 +106,7 @@ begin
   -- select most recent credit_class_version
   select * from credit_class_version
   into v_credit_class_version
+  where id = v_project.credit_class_id
   ORDER BY created_at DESC LIMIT 1;
 
   -- create credit vintage
