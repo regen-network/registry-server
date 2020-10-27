@@ -35,6 +35,8 @@ declare
   v_key text;
   v_value numeric;
   v_sum numeric;
+  v_credit_class_version credit_class_version;
+  v_deduction numeric default 1;
 begin
   if public.get_current_user() is null then
     raise exception 'You must log in to issue credits' using errcode = 'LOGIN';
@@ -78,7 +80,6 @@ begin
   from party
   into v_issuer_wallet_id where id = v_issuer_organization.party_id;
 
-
   if v_issuer_wallet_id is null then
     raise exception 'Issuer must have a wallet' using errcode = 'NTFND';
   end if;
@@ -102,13 +103,45 @@ begin
     raise exception 'Sum of ownership breakdown not equal to 100' using errcode = 'DNIED';
   end if;
 
+  -- select most recent credit_class_version
+  select * from credit_class_version
+  into v_credit_class_version
+  ORDER BY created_at DESC LIMIT 1;
+
   -- create credit vintage
   insert into credit_vintage
   (credit_class_id, project_id, issuer_id, units, initial_distribution)
   values(v_project.credit_class_id, project_id, v_issuer_wallet_id, units, initial_distribution)
   returning * into v_credit_vintage;
 
-  -- create account balances
+  -- create buffer pool and permanence reversal pool account balances
+  for v_key, v_value IN
+  select *
+  from jsonb_each_text(v_credit_class_version.metadata -> 'distribution')
+    loop
+      if v_value != 0 then
+        if v_key = 'bufferPool' then
+          select wallet_id from party into v_issuee_id
+          inner join "user" on "user".email = 'bufferpool-registry@regen.network'
+          where party.id = "user".party_id;
+        end if;
+
+        if v_key = 'permanenceReversalBuffer' then
+          select wallet_id from party into v_issuee_id
+          inner join "user" on "user".email = 'permanence-registry@regen.network'
+          where party.id = "user".party_id;
+        end if;
+
+        insert into account_balance
+          (credit_vintage_id, wallet_id, liquid_balance, burnt_balance)
+        values
+          (v_credit_vintage.id, v_issuee_id, v_value * units , 0);
+        v_deduction = v_deduction - v_value;
+        end if;
+
+    end loop;
+
+  -- create project stakeholders account balances
   for v_key, v_value IN
   select *
   from jsonb_each_text(initial_distribution)
@@ -145,7 +178,7 @@ begin
         insert into account_balance
           (credit_vintage_id, wallet_id, liquid_balance, burnt_balance)
         values
-          (v_credit_vintage.id, v_issuee_id, v_value * units , 0);
+          (v_credit_vintage.id, v_issuee_id, v_deduction * v_value * units , 0);
       end if;
   end loop;
 
