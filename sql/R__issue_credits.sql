@@ -22,7 +22,7 @@ create or replace function issue_credits(
   project_id uuid,
   units integer,
   initial_distribution jsonb
-) returns credit_vintage as $$
+) returns jsonb as $$
 declare
   v_issuer "user";
   v_issuer_organization organization;
@@ -37,6 +37,7 @@ declare
   v_sum numeric;
   v_credit_class_version credit_class_version;
   v_deduction numeric default 1;
+  v_account_balances jsonb default '[]'::jsonb;
 begin
   if public.get_current_user() is null then
     raise exception 'You must log in to issue credits' using errcode = 'LOGIN';
@@ -137,7 +138,13 @@ begin
           (credit_vintage_id, wallet_id, liquid_balance, burnt_balance)
         values
           (v_credit_vintage.id, v_issuee_id, v_value * units , 0);
+
         v_deduction = v_deduction - v_value;
+        v_account_balances = v_account_balances || jsonb_build_object(
+            'name', v_key,
+            'percentage', v_value * 100,
+            'amount', v_value * units
+          );
         end if;
 
     end loop;
@@ -155,7 +162,6 @@ begin
           end if;
           -- select get_party_wallet_id(v_project.developer_id) into v_issuee_id;
           select wallet_id from party into v_issuee_id where id = v_project.developer_id;
-          
         end if;
 
         if v_key = 'landOwner' then
@@ -164,7 +170,6 @@ begin
           end if;
           -- select get_party_wallet_id(v_project.land_owner_id) into v_issuee_id;
           select wallet_id from party into v_issuee_id where id = v_project.land_owner_id;
-
         end if;
 
         if v_key = 'landSteward' then
@@ -173,17 +178,25 @@ begin
           end if;
           -- select get_party_wallet_id(v_project.steward_id) into v_issuee_id;
           select wallet_id from party into v_issuee_id where id = v_project.steward_id;
-
         end if;
 
         insert into account_balance
           (credit_vintage_id, wallet_id, liquid_balance, burnt_balance)
         values
           (v_credit_vintage.id, v_issuee_id, v_deduction * v_value * units , 0);
+        v_account_balances = v_account_balances || jsonb_build_object(
+            'name', v_key,
+            'percentage', v_deduction * v_value * 100,
+            'amount', v_deduction * v_value * units
+          );
       end if;
   end loop;
 
-  return v_credit_vintage;
+  -- return v_credit_vintage;
+  return jsonb_build_object(
+    'creditVintageId', v_credit_vintage.id,
+    'accountBalances', v_account_balances
+  );
 end;
 $$ language plpgsql strict volatile
 set search_path
