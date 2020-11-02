@@ -72,36 +72,69 @@ router.post(
     }
 
     // Handle the event
+    let invoice;
+    let lines;
     switch (event.type) {
-      case 'invoice.payment_succeeded':
-        const invoice = event.data.object;
-        const lines = invoice.lines.data;
+      case 'invoice.created':
+        invoice = event.data.object;
+        lines = invoice.lines.data;
 
-        if (lines.length) {
-          item = lines[0];
+        for (let i = 0; i < lines.length; i++) {
+          // Get connected account id from product
           try {
-            // Transfer credits
-            await client.query(
-              'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12)',
-              [
-                invoice.metadata.vintage_id,
-                invoice.metadata.wallet_id,
-                invoice.metadata.home_address_id,
-                item.quantity,
-                item.amount / 100 / item.quantity,
-                'succeeded',
+            const product = await stripe.products.retrieve(lines[i].price.product);
+            // Update invoice with connected account id
+            try {
+              await stripe.invoices.update(
                 invoice.id,
-                'stripe_invoice',
-                item.currency,
-                invoice['customer_email'],
-                true,
-                invoice['customer_name'],
-              ]
-            );
-            res.sendStatus(200);
+                { transfer_data: { destination: product.metadata.account_id }},
+              );
+              res.sendStatus(200);
+            } catch (err) {
+              res.sendStatus(500);
+              console.error('Error updating Stripe invoice', err);
+            }
           } catch (err) {
             res.sendStatus(500);
-            console.error('Error transfering credits', err);
+            console.error('Error getting Stripe product', err);
+          }
+        }
+        break;
+      case 'invoice.payment_succeeded':
+        invoice = event.data.object;
+        lines = invoice.lines.data;
+
+        if (lines.length) {
+          item = lines[0]; // TODO loop through all lines
+          try {
+            const product = await stripe.products.retrieve(item.price.product);
+            try {
+              // Transfer credits
+              await client.query(
+                'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12)',
+                [
+                  product.metadata.vintage_id,
+                  invoice.metadata.wallet_id,
+                  invoice.metadata.home_address_id,
+                  item.quantity,
+                  item.amount / 100 / item.quantity,
+                  'succeeded',
+                  invoice.id,
+                  'stripe_invoice',
+                  item.currency,
+                  invoice['customer_email'],
+                  true,
+                  invoice['customer_name'],
+                ]
+              );
+              res.sendStatus(200);
+            } catch (err) {
+              res.sendStatus(500);
+              console.error('Error transfering credits', err);
+            }
+          } catch (err) {
+            res.sendStatus(500);
+            console.error('Error getting Stripe product', err);
           }
         } else {
           return res.status(400).end();
@@ -142,7 +175,7 @@ router.post(
                 res.sendStatus(500);
                 console.error('Error transfering credits', err);
               }
-            } catch(err) {
+            } catch (err) {
               res.sendStatus(500);
               console.error('Error getting Stripe product', err);
             }
