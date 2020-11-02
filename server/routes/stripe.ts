@@ -5,15 +5,6 @@ const stripe = require('stripe')(process.env.STRIPE_API_KEY);
 const { pgPool } = require('../pool');
 const router = express.Router();
 
-router.get('/test',
-  bodyParser.json(),
-  async (req, res) => {
-    const invoice = await stripe.invoices.retrieve('in_1Hj1QSJol3OwGs5ekGCgG2wr');
-    console.log(invoice);
-    res.send(200)
-
-  }
-)
 router.post(
   '/create-checkout-session',
   bodyParser.json(),
@@ -86,6 +77,7 @@ router.post(
     switch (event.type) {
       case 'invoice.created':
         invoice = event.data.object;
+        console.log('invoice', invoice)
         lines = invoice.lines.data;
 
         for (let i = 0; i < lines.length; i++) {
@@ -94,8 +86,7 @@ router.post(
             const product = await stripe.products.retrieve(lines[i].price.product);
             // Update invoice with connected account id
             try {
-              console.log('invoice id', invoice.id);
-              console.log('account', product.metadata.account_id);
+              console.log('product', product);
               await stripe.invoices.update(
                 invoice.id,
                 { transfer_data: { destination: product.metadata.account_id }},
