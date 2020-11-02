@@ -111,7 +111,7 @@ app.use(postgraphile(pgPool, 'public', {
 app.use(require('./routes/mailerlite'));
 app.use(require('./routes/contact'));
 app.use(require('./routes/buyers-info'));
-app.use(require('./routes/webhook'));
+app.use(require('./routes/stripe'));
 
 const port = process.env.PORT || 5000;
 
