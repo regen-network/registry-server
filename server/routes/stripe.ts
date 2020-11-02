@@ -75,7 +75,7 @@ router.post(
     let invoice;
     let lines;
     switch (event.type) {
-      case 'invoice.created':
+      case 'invoice.finalized':
         invoice = event.data.object;
         console.log('invoice', invoice)
         lines = invoice.lines.data;
