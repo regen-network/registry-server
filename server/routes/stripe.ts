@@ -117,7 +117,7 @@ router.post(
           for (let i = 0; i < lineItems.data.length; i++) {
             const item = lineItems[i];
             try {
-              const product = await stripe.product.retrieve(item.price.product);
+              const product = await stripe.products.retrieve(item.price.product);
               try {
                 // Transfer credits
                 await client.query(
