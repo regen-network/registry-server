@@ -95,7 +95,7 @@ router.post(
                 item.currency,
                 invoice['customer_email'],
                 true,
-                '',
+                invoice['customer_name'],
               ]
             );
             res.sendStatus(200);
@@ -127,7 +127,7 @@ router.post(
                     walletId,
                     addressId,
                     item.quantity,
-                    item.price.unitAmount / 100,
+                    item.price.unit_amount / 100,
                     'succeeded',
                     session.id,
                     'stripe_checkout',
