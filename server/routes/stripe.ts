@@ -114,7 +114,7 @@ router.post(
 
         try {
           const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
-          for (let i = 0; i < lineItems.data.length(); i++) {
+          for (let i = 0; i < lineItems.data.length; i++) {
             const item = lineItems[i];
             try {
               const product = await stripe.product.retrieve(item.price.product);
