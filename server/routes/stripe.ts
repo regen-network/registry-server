@@ -95,24 +95,28 @@ router.post(
               }
 
               // Update invoice with connected account id
-              try {
-                await stripe.invoices.update(
-                  invoiceId,
-                  {
-                    transfer_data: {
-                      destination: product.metadata.account_id,
-                      amount: amount * 0.90,
+              if (product.metadata && product.metadata.account_id) {
+                try {
+                  await stripe.invoices.update(
+                    invoiceId,
+                    {
+                      transfer_data: {
+                        destination: product.metadata.account_id,
+                        amount: amount * 0.90,
+                      },
                     },
-                  },
-                );
+                  );
+                  res.sendStatus(200);
+                } catch (err) {
+                  console.error('Error updating Stripe invoice', err);
+                  return res.status(500).end();
+                }
+              } else {
                 res.sendStatus(200);
-              } catch (err) {
-                console.error('Error updating Stripe invoice', err);
-                res.sendStatus(500);
               }
             } catch (err) {
               console.error('Error getting Stripe product', err);
-              res.sendStatus(500);
+              return res.status(500).end();
             }
           } else {
             // No line items, nothing to do
