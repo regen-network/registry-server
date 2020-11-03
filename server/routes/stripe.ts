@@ -76,7 +76,7 @@ router.post(
     let invoice;
     let lines;
     switch (event.type) {
-      case 'invoice.finalized':
+      case 'invoice.updated':
         invoice = event.data.object;
         lines = invoice.lines.data;
         if (lines.length > 0) {
