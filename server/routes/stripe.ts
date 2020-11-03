@@ -24,7 +24,7 @@ router.post(
           on_behalf_of: product.metadata.account_id, // TODO: remove once recipient service agreement setup
           transfer_data: {
             destination: product.metadata.account_id,
-            amount: priceObject.unit_amount * units * 0.10,
+            amount: priceObject.unit_amount * units * 0.90,
           },
         },
         line_items: [
@@ -98,7 +98,7 @@ router.post(
                 {
                   transfer_data: {
                     destination: product.metadata.account_id,
-                    amount: amount * 0.10,
+                    amount: amount * 0.90,
                   },
                 },
               );
