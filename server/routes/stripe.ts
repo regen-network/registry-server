@@ -76,44 +76,51 @@ router.post(
     let invoice;
     let lines;
     switch (event.type) {
-      case 'invoice.updated':
-        invoice = event.data.object;
-        lines = invoice.lines.data;
-        if (lines.length > 0) {
-          let amount: number = 0;
-          // Get connected account id from product
-          // Assuming the same connect account_id to be used for all line items
-          try {
-            const product = await stripe.products.retrieve(lines[0].price.product);
-
-            // Get total amount
-            for (let i = 0; i < lines.length; i++) {
-              amount = amount + lines[i].amount;
-            }
-
-            // Update invoice with connected account id
+      case 'invoiceitem.created':
+      case 'invoiceitem.updated':
+      case 'invoiceitem.deleted':
+        const invoiceId = event.data.object.invoice;
+        try {
+          lines = await stripe.invoices.listLineItems(invoiceId);
+          if (lines.length > 0) {
+            let amount: number = 0;
+            // Get connected account id from product
+            // Assuming the same connect account_id to be used for all line items
             try {
-              await stripe.invoices.update(
-                invoice.id,
-                {
-                  transfer_data: {
-                    destination: product.metadata.account_id,
-                    amount: amount * 0.90,
+              const product = await stripe.products.retrieve(lines[0].price.product);
+
+              // Get total amount
+              for (let i = 0; i < lines.length; i++) {
+                amount = amount + lines[i].amount;
+              }
+
+              // Update invoice with connected account id
+              try {
+                await stripe.invoices.update(
+                  invoiceId,
+                  {
+                    transfer_data: {
+                      destination: product.metadata.account_id,
+                      amount: amount * 0.90,
+                    },
                   },
-                },
-              );
-              res.sendStatus(200);
+                );
+                res.sendStatus(200);
+              } catch (err) {
+                console.error('Error updating Stripe invoice', err);
+                res.sendStatus(500);
+              }
             } catch (err) {
+              console.error('Error getting Stripe product', err);
               res.sendStatus(500);
-              console.error('Error updating Stripe invoice', err);
             }
-          } catch (err) {
-            res.sendStatus(500);
-            console.error('Error getting Stripe product', err);
+          } else {
+            // No line items, nothing to do
+            res.sendStatus(200);
           }
-        } else {
-          // No line items, nothing to do
-          res.sendStatus(200);
+        } catch (err) {
+          console.error('Error getting Stripe invoice line items', err);
+          res.sendStatus(500);
         }
         break;
       case 'invoice.payment_succeeded':
