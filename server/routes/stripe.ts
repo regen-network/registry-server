@@ -82,16 +82,16 @@ router.post(
         const invoiceId = event.data.object.invoice;
         try {
           lines = await stripe.invoices.listLineItems(invoiceId);
-          if (lines.length > 0) {
+          if (lines.data.length > 0) {
             let amount: number = 0;
             // Get connected account id from product
             // Assuming the same connect account_id to be used for all line items
             try {
-              const product = await stripe.products.retrieve(lines[0].price.product);
+              const product = await stripe.products.retrieve(lines.data[0].price.product);
 
               // Get total amount
-              for (let i = 0; i < lines.length; i++) {
-                amount = amount + lines[i].amount;
+              for (let i = 0; i < lines.data.length; i++) {
+                amount = amount + lines.data[i].amount;
               }
 
               // Update invoice with connected account id
