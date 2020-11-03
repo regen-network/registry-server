@@ -21,9 +21,10 @@ router.post(
         payment_method_types: ['card'],
         customer_email: customerEmail,
         payment_intent_data: {
-          on_behalf_of: product.metadata.account_id,
+          on_behalf_of: product.metadata.account_id, // TODO: remove once recipient service agreement setup
           transfer_data: {
             destination: product.metadata.account_id,
+            amount: priceObject.unit_amount * units * 0.10,
           },
         },
         line_items: [
@@ -77,19 +78,29 @@ router.post(
     switch (event.type) {
       case 'invoice.finalized':
         invoice = event.data.object;
-        console.log('invoice', invoice)
         lines = invoice.lines.data;
-
-        for (let i = 0; i < lines.length; i++) {
+        if (lines.length > 0) {
+          let amount: number = 0;
           // Get connected account id from product
+          // Assuming the same connect account_id to be used for all line items
           try {
-            const product = await stripe.products.retrieve(lines[i].price.product);
+            const product = await stripe.products.retrieve(lines[0].price.product);
+
+            // Get total amount
+            for (let i = 0; i < lines.length; i++) {
+              amount = amount + lines[i].amount;
+            }
+
             // Update invoice with connected account id
             try {
-              console.log('product', product);
               await stripe.invoices.update(
                 invoice.id,
-                { transfer_data: { destination: product.metadata.account_id }},
+                {
+                  transfer_data: {
+                    destination: product.metadata.account_id,
+                    amount: amount * 0.10,
+                  },
+                },
               );
               res.sendStatus(200);
             } catch (err) {
@@ -100,6 +111,9 @@ router.post(
             res.sendStatus(500);
             console.error('Error getting Stripe product', err);
           }
+        } else {
+          // No line items, nothing to do
+          res.sendStatus(200);
         }
         break;
       case 'invoice.payment_succeeded':

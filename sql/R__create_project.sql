@@ -47,6 +47,7 @@ end;
 $$ language plpgsql volatile
 set search_path = pg_catalog, public, pg_temp;
 
+-- TODO: Update to use address table instead of location
 create or replace function private.really_create_project(
   methodology_developer_id uuid,
   project_developer_id uuid,
