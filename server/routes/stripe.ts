@@ -20,11 +20,12 @@ router.post(
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         customer_email: customerEmail,
+        application_fee_amount: priceObject.unit_amount * units * 0.10,
         payment_intent_data: {
           on_behalf_of: product.metadata.account_id, // TODO: remove once recipient service agreement setup
           transfer_data: {
             destination: product.metadata.account_id,
-            amount: priceObject.unit_amount * units * 0.90,
+            // amount: priceObject.unit_amount * units * 0.90,
           },
         },
         line_items: [
@@ -101,9 +102,10 @@ router.post(
                   await stripe.invoices.update(
                     invoiceId,
                     {
+                      application_fee_amount: amount * 0.10,
                       transfer_data: {
                         destination: product.metadata.account_id,
-                        amount: amount * 0.90,
+                        // amount: amount * 0.90,
                       },
                     },
                   );
