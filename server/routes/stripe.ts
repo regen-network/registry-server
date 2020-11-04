@@ -20,8 +20,8 @@ router.post(
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         customer_email: customerEmail,
-        application_fee_amount: priceObject.unit_amount * units * 0.10,
         payment_intent_data: {
+          application_fee_amount: priceObject.unit_amount * units * 0.10,
           on_behalf_of: product.metadata.account_id, // TODO: remove once recipient service agreement setup
           transfer_data: {
             destination: product.metadata.account_id,
