@@ -55,30 +55,25 @@ router.post(
     let event, client, item;
 
     try {
-      console.log('try constructEvent')
       event = stripe.webhooks.constructEvent(
         req.body,
         sig,
         process.env.STRIPE_ENDPOINT_SECRET
       );
-      if (event) console.log('event')
     } catch (err) {
       res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
     try {
-      console.log('try pgPool')
       client = await pgPool.connect();
 
       // Handle the event
       let invoice;
       let lines;
-      console.log('reading event type')
       switch (event.type) {
         case 'invoiceitem.created':
         case 'invoiceitem.updated':
         case 'invoiceitem.deleted':
-          console.log('invoiceitem');
           const invoiceId = event.data.object.invoice;
           try {
             lines = await stripe.invoices.listLineItems(invoiceId);
@@ -126,7 +121,6 @@ router.post(
             console.error('Error getting Stripe invoice line items', err);
             res.sendStatus(500);
           }
-          console.log('break');
           break;
         case 'invoice.payment_succeeded':
           invoice = event.data.object;
