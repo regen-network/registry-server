@@ -61,7 +61,7 @@ router.post(
         sig,
         process.env.STRIPE_ENDPOINT_SECRET
       );
-      console.log('event', event)
+      if (event) console.log('event')
     } catch (err) {
       res.status(400).send(`Webhook Error: ${err.message}`);
     }
@@ -69,14 +69,16 @@ router.post(
     try {
       console.log('try pgPool')
       client = await pgPool.connect();
+      console.log('client')
     } catch (err) {
-      res.sendStatus(500);
       console.error('Error acquiring postgres client', err);
+      res.sendStatus(500);
     }
 
     // Handle the event
     let invoice;
     let lines;
+    console.log('reading event type')
     switch (event.type) {
       case 'invoiceitem.created':
       case 'invoiceitem.updated':
