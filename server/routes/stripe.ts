@@ -66,14 +66,14 @@ router.post(
       res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    try {
-      console.log('try pgPool')
-      client = await pgPool.connect();
-      console.log('client')
-    } catch (err) {
-      console.error('Error acquiring postgres client', err);
-      res.sendStatus(500);
-    }
+    // try {
+    //   console.log('try pgPool')
+    //   client = await pgPool.connect();
+    //   console.log('client')
+    // } catch (err) {
+    //   console.error('Error acquiring postgres client', err);
+    //   res.sendStatus(500);
+    // }
 
     // Handle the event
     let invoice;
@@ -143,23 +143,23 @@ router.post(
             const product = await stripe.products.retrieve(item.price.product);
             try {
               // Transfer credits
-              await client.query(
-                'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12)',
-                [
-                  product.metadata.vintage_id,
-                  invoice.metadata.wallet_id,
-                  invoice.metadata.home_address_id,
-                  item.quantity,
-                  item.amount / 100 / item.quantity,
-                  'succeeded',
-                  invoice.id,
-                  'stripe_invoice',
-                  item.currency,
-                  invoice['customer_email'],
-                  true,
-                  invoice['customer_name'],
-                ]
-              );
+              // await client.query(
+              //   'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12)',
+              //   [
+              //     product.metadata.vintage_id,
+              //     invoice.metadata.wallet_id,
+              //     invoice.metadata.home_address_id,
+              //     item.quantity,
+              //     item.amount / 100 / item.quantity,
+              //     'succeeded',
+              //     invoice.id,
+              //     'stripe_invoice',
+              //     item.currency,
+              //     invoice['customer_email'],
+              //     true,
+              //     invoice['customer_name'],
+              //   ]
+              // );
               res.sendStatus(200);
             } catch (err) {
               res.sendStatus(500);
@@ -186,23 +186,23 @@ router.post(
               const product = await stripe.products.retrieve(item.price.product);
               try {
                 // Transfer credits
-                await client.query(
-                  'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12)',
-                  [
-                    product.metadata.vintage_id,
-                    walletId,
-                    addressId,
-                    item.quantity,
-                    item.price.unit_amount / 100,
-                    'succeeded',
-                    session.id,
-                    'stripe_checkout',
-                    item.price.currency,
-                    session['customer_email'],
-                    true,
-                    name,
-                  ]
-                );
+                // await client.query(
+                //   'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12)',
+                //   [
+                //     product.metadata.vintage_id,
+                //     walletId,
+                //     addressId,
+                //     item.quantity,
+                //     item.price.unit_amount / 100,
+                //     'succeeded',
+                //     session.id,
+                //     'stripe_checkout',
+                //     item.price.currency,
+                //     session['customer_email'],
+                //     true,
+                //     name,
+                //   ]
+                // );
                 res.sendStatus(200);
               } catch (err) {
                 res.sendStatus(500);
@@ -216,8 +216,8 @@ router.post(
         } catch (err) {
           res.sendStatus(500);
           console.error('Error getting Stripe session line items', err);
-        } finally {
-          client.release();
+        // } finally {
+          // client.release();
         }
         break;
       default:
