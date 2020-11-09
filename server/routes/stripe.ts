@@ -57,6 +57,7 @@ router.post(
     let event, client, item;
 
     try {
+      console.log('try constructEvent')
       event = stripe.webhooks.constructEvent(
         req.body,
         sig,
@@ -77,9 +78,9 @@ router.post(
     let invoice;
     let lines;
     switch (event.type) {
-      // case 'invoiceitem.created':
+      case 'invoiceitem.created':
       case 'invoiceitem.updated':
-      // case 'invoiceitem.deleted':
+      case 'invoiceitem.deleted':
         console.log('invoiceitem');
         const invoiceId = event.data.object.invoice;
         try {
