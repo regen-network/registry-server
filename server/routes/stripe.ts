@@ -77,9 +77,9 @@ router.post(
     let invoice;
     let lines;
     switch (event.type) {
-      case 'invoiceitem.created':
+      // case 'invoiceitem.created':
       case 'invoiceitem.updated':
-      case 'invoiceitem.deleted':
+      // case 'invoiceitem.deleted':
         console.log('invoiceitem');
         const invoiceId = event.data.object.invoice;
         try {
@@ -105,7 +105,6 @@ router.post(
                       application_fee_amount: amount * 0.10,
                       transfer_data: {
                         destination: product.metadata.account_id,
-                        // amount: amount * 0.90,
                       },
                     },
                   );
