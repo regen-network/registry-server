@@ -22,10 +22,8 @@ router.post(
         customer_email: customerEmail,
         payment_intent_data: {
           application_fee_amount: priceObject.unit_amount * units * 0.10,
-          on_behalf_of: product.metadata.account_id, // TODO: remove once recipient service agreement setup
           transfer_data: {
             destination: product.metadata.account_id,
-            // amount: priceObject.unit_amount * units * 0.90,
           },
         },
         line_items: [
@@ -63,11 +61,13 @@ router.post(
         sig,
         process.env.STRIPE_ENDPOINT_SECRET
       );
+      console.log('event', event)
     } catch (err) {
       res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
     try {
+      console.log('try pgPool')
       client = await pgPool.connect();
     } catch (err) {
       res.sendStatus(500);
