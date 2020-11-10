@@ -20,12 +20,12 @@ router.post(
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         customer_email: customerEmail,
-        payment_intent_data: {
-          application_fee_amount: priceObject.unit_amount * units * 0.10,
-          transfer_data: {
-            destination: product.metadata.account_id,
-          },
-        },
+        // payment_intent_data: {
+        //   application_fee_amount: priceObject.unit_amount * units * 0.10,
+        //   transfer_data: {
+        //     destination: product.metadata.account_id,
+        //   },
+        // },
         line_items: [
           {
             price,
@@ -71,6 +71,70 @@ router.post(
       let invoice;
       let lines;
       switch (event.type) {
+        // case 'charge.succeeded':
+        //   const charge = event.data.object;
+        //   const chargeId = charge.id;
+        //   try {
+        //     // Retrieve charge balance_transaction for fee details
+        //     const expandedCharge = await stripe.charges.retrieve(
+        //       chargeId,
+        //       {
+        //         expand: ['balance_transaction'],
+        //       }
+        //     );
+
+        //     let accountId: string;
+        //     // Retrieve account id from invoice
+        //     if (charge.invoice) {
+        //       try {
+        //         lines = await stripe.invoices.listLineItems(charge.invoice);
+        //         // Get Connect account id from product
+        //         // Assuming the same connect account_id to be used for all line items
+        //         if (lines.data.length > 0) {
+        //           try {
+        //             const product = await stripe.products.retrieve(lines.data[0].price.product);
+        //             if (product.metadata && product.metadata.account_id) {
+        //               accountId = product.metadata.account_id;
+        //             }
+        //           } catch (err) {
+        //             console.error('Error getting Stripe product', err);
+        //             res.status(500).send(err);
+        //           }
+        //         } else {
+        //           // No line items, nothing to do
+        //           res.sendStatus(200);
+        //         }
+        //       } catch (err) {
+        //         console.error('Error getting Stripe invoice line items', err);
+        //         res.status(500).send(err);
+        //       }
+        //     } else if () { // or from checkout 
+
+        //     }
+
+        //     if (accountId) {
+        //       try {
+        //         // Transfer 90% to Connect account minus the Stripe fees
+        //         const transfer = await stripe.transfers.create({
+        //           amount: charge.amount * 0.9 - expandedCharge.balance_transaction.fee,
+        //           currency: charge.currency,
+        //           destination: accountId,
+        //           source_transaction: chargeId,
+        //         })
+        //       } catch (err) {
+        //         console.error('Error transferring', err);
+        //         res.status(500).end();
+        //       }
+        //     } else {
+        //       // No account id, nothing to do
+        //       res.sendStatus(200);
+        //     }
+
+        //   } catch (err) {
+        //     console.error('Error getting Stripe charge', err);
+        //     res.status(500).end();
+        //   }
+        //   break;
         case 'invoiceitem.created':
         case 'invoiceitem.updated':
         case 'invoiceitem.deleted':
@@ -129,9 +193,33 @@ router.post(
           if (lines.length) {
             item = lines[0]; // TODO loop through all lines
             try {
+              // Retrieve product for account id
               const product = await stripe.products.retrieve(item.price.product);
+              // Retrieve charge balance_transaction for fee details
+              const charge = await stripe.charges.retrieve(
+                invoice.charge,
+                {
+                  expand: ['balance_transaction'],
+                }
+              );
+
+              // Transfer 90% to Connect account minus the Stripe fees
+              if (product && product.metadata && product.metadata.account_id && charge) {
+                try {
+                  const transfer = await stripe.transfers.create({
+                    amount: getTransferAmount(charge.amount, charge.balance_transaction.fee),
+                    currency: charge.currency,
+                    destination: product.metadata.account_id,
+                    source_transaction: charge.id,
+                  })
+                } catch (err) {
+                  console.error('Error transferring', err);
+                  res.status(500).end();
+                }
+              }
+
+              // Transfer credits
               try {
-                // Transfer credits
                 await client.query(
                   'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12)',
                   [
@@ -151,12 +239,12 @@ router.post(
                 );
                 res.sendStatus(200);
               } catch (err) {
-                res.sendStatus(500);
                 console.error('Error transfering credits', err);
+                res.status(500).send(err);
               }
             } catch (err) {
-              res.sendStatus(500);
-              console.error('Error getting Stripe product', err);
+              console.error(err);
+              res.status(500).send(err);
             }
           } else {
             res.status(400).end();
@@ -173,8 +261,33 @@ router.post(
               const item = lineItems.data[i];
               try {
                 const product = await stripe.products.retrieve(item.price.product);
+                // Retrieve charge balance_transaction for fee details
+                const paymentIntent = await stripe.paymentIntents.retrieve(
+                  session.payment_intent,
+                  {
+                    expand: ['charges.data.balance_transaction'],
+                  }
+                );
+
+                // Transfer 90% to Connect account minus the Stripe fees
+                if (product && product.metadata && product.metadata.account_id &&
+                  paymentIntent && paymentIntent.charges && paymentIntent.charges.data.length > 0) {
+                  const charge = paymentIntent.charges.data[0]; // The data list only contains the latest charge
+                  try {
+                    const transfer = await stripe.transfers.create({
+                      amount: getTransferAmount(charge.amount, charge.balance_transaction.fee),
+                      currency: charge.currency,
+                      destination: product.metadata.account_id,
+                      source_transaction: charge.id,
+                    })
+                  } catch (err) {
+                    console.error('Error transferring', err);
+                    res.status(500).end();
+                  }
+                }
+
+                // Transfer credits
                 try {
-                  // Transfer credits
                   await client.query(
                     'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12)',
                     [
@@ -194,12 +307,11 @@ router.post(
                   );
                   res.sendStatus(200);
                 } catch (err) {
-                  res.sendStatus(500);
                   console.error('Error transfering credits', err);
+                  res.status(500).send(err);
                 }
               } catch (err) {
-                res.sendStatus(500);
-                console.error('Error getting Stripe product', err);
+                res.status(500).send(err);
               }
             }
           } catch (err) {
@@ -221,5 +333,9 @@ router.post(
     }
   }
 );
+
+function getTransferAmount(amount: number, fee: number): number {
+  return amount * 0.9 - fee;
+}
 
 module.exports = router;
