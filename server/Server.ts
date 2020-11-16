@@ -2,13 +2,13 @@ import * as express from 'express';
 import * as path from 'path';
 import { postgraphile } from 'postgraphile';
 import * as PgManyToManyPlugin from '@graphile-contrib/pg-many-to-many';
-import * as jwks from 'jwks-rsa';
-import * as jwt from 'express-jwt';
 import * as fileUpload from 'express-fileupload';
 import * as cors from 'cors';
 import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
+import getJwt from './middleware/jwt';
+
 const url = require('url');
 
 const { pgPool } = require('./pool');
@@ -42,18 +42,7 @@ const app = express();
 app.use(fileUpload());
 app.use(cors(corsOptions));
 
-app.use(jwt({
-  secret: jwks.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: 'https://regen-network-registry.auth0.com/.well-known/jwks.json'
-  }),
-  credentialsRequired: false,
-  audience: 'https://regen-registry-server.herokuapp.com/',
-  issuer: 'https://regen-network-registry.auth0.com/',
-  algorithms: ['RS256']
-}));
+app.use(getJwt(false));
 
 app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user

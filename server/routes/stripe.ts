@@ -1,9 +1,48 @@
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
+import * as jwks from 'jwks-rsa';
+import * as jwt from 'express-jwt';
+
+import { UserRequest } from '../types';
+import getJwt from '../middleware/jwt';
 
 const stripe = require('stripe')(process.env.STRIPE_API_KEY);
 const { pgPool } = require('../pool');
 const router = express.Router();
+
+router.post(
+  '/create-account-link',
+  bodyParser.json(),
+  getJwt(true),
+  async (req: UserRequest, res) => {
+    try {
+      const { email, refreshUrl, returnUrl } = req.body;
+      const account = await stripe.accounts.create({
+        email,
+        type: 'express',
+        country: 'AU',
+        capabilities: {
+          transfers: {
+            requested: true,
+          },
+        },
+        tos_acceptance: {
+          service_agreement: 'recipient',
+        },
+      });
+
+      const accountLink = await stripe.accountLinks.create({
+        account: account.id,
+        refresh_url: refreshUrl,
+        return_url: returnUrl,
+        type: 'account_onboarding',
+      });
+      res.json(accountLink);
+    } catch (err) {
+      res.status(400).send(err);
+    }
+  }
+);
 
 router.post(
   '/create-checkout-session',
