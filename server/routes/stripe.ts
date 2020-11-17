@@ -190,7 +190,7 @@ router.post(
                 if (product && product.metadata && product.metadata.account_id && charge) {
                   try {
                     const transfer = await stripe.transfers.create({
-                      amount: getTransferAmount(charge.amount, charge.balance_transaction.fee),
+                      amount: getTransferAmount(item.amount, charge.balance_transaction.fee / lines.length),
                       currency: charge.currency,
                       destination: product.metadata.account_id,
                       source_transaction: charge.id,
@@ -281,7 +281,7 @@ router.post(
                   if (product && product.metadata && product.metadata.account_id) {
                     try {
                       const transfer = await stripe.transfers.create({
-                        amount: getTransferAmount(charge.amount, charge.balance_transaction.fee),
+                        amount: getTransferAmount(item.amount, charge.balance_transaction.fee / lineItems.data.length),
                         currency: charge.currency,
                         destination: product.metadata.account_id,
                         source_transaction: charge.id,
@@ -325,7 +325,6 @@ router.post(
               // Send confirmation email
               if (runner) {
                 transferResult = result.rows[0].transfer_credits;
-                console.log('transferResult', transferResult)
                 try {
                   await runner.addJob('credits_transfer__send_confirmation', {
                     email: session.customer_email,
