@@ -34,7 +34,7 @@ const task: Task = async (inPayload) => {
   const payload: SendEmailPayload = inPayload as any;
   const { options: inOptions, template, variables } = payload;
   const options = {
-    from: process.env.SES_EMAIL || 'marie@regen.network',
+    from: `Regen Network <${process.env.SES_EMAIL}>` || 'marie@regen.network',
     ...inOptions,
   };
   if (template) {
