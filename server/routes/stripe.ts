@@ -190,7 +190,7 @@ router.post(
                 if (product && product.metadata && product.metadata.account_id && charge) {
                   try {
                     const transfer = await stripe.transfers.create({
-                      amount: getTransferAmount(item.amount_total, Math.round(charge.balance_transaction.fee / lines.length)),
+                      amount: getTransferAmount(item.amount, Math.round(charge.balance_transaction.fee / lines.length)),
                       currency: charge.currency,
                       destination: product.metadata.account_id,
                       source_transaction: charge.id,
