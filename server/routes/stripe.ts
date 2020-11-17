@@ -190,7 +190,7 @@ router.post(
                 if (product && product.metadata && product.metadata.account_id && charge) {
                   try {
                     const transfer = await stripe.transfers.create({
-                      amount: getTransferAmount(item.amount, charge.balance_transaction.fee / lines.length),
+                      amount: getTransferAmount(item.amount, Math.round(charge.balance_transaction.fee / lines.length)),
                       currency: charge.currency,
                       destination: product.metadata.account_id,
                       source_transaction: charge.id,
@@ -198,6 +198,7 @@ router.post(
                   } catch (err) {
                     console.error('Error transferring', err);
                     res.status(500).end();
+                    break;
                   }
                 }
 
@@ -225,10 +226,12 @@ router.post(
                 } catch (err) {
                   console.error('Error transfering credits', err);
                   res.status(500).send(err);
+                  break;
                 }
               } catch (err) {
                 console.error(err);
                 res.status(500).send(err);
+                break;
               }
             }
 
@@ -281,7 +284,7 @@ router.post(
                   if (product && product.metadata && product.metadata.account_id) {
                     try {
                       const transfer = await stripe.transfers.create({
-                        amount: getTransferAmount(item.amount, charge.balance_transaction.fee / lineItems.data.length),
+                        amount: getTransferAmount(item.amount, Math.round(charge.balance_transaction.fee / lineItems.data.length)),
                         currency: charge.currency,
                         destination: product.metadata.account_id,
                         source_transaction: charge.id,
@@ -289,6 +292,7 @@ router.post(
                     } catch (err) {
                       console.error('Error transferring', err);
                       res.status(500).end();
+                      break;
                     }
                   }
 
@@ -316,9 +320,11 @@ router.post(
                   } catch (err) {
                     console.error('Error transfering credits', err);
                     res.status(500).send(err);
+                    break;
                   }
                 } catch (err) {
                   res.status(500).send(err);
+                  break;
                 }
               }
 
