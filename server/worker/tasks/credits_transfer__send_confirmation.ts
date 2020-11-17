@@ -20,8 +20,8 @@ interface CreditsTransferSendConfirmationPayload {
   creditClass: {
     name: string;
     metadata: {
-      purchase_summary: string;
-      purchase_share: string;
+      purchaseSummary: string;
+      purchaseShare: string;
       type: string;
     };
   };
@@ -44,9 +44,9 @@ const task: Task = async (inPayload, { addJob }) => {
     },
     template: 'confirm_credits_transfer.mjml',
     variables: {
-      creditClassSpread: creditClass.metadata.purchase_share,
+      creditClassSpread: creditClass.metadata.purchaseShare,
       receiptUrl: '',
-      summary: creditClass.metadata.purchase_summary,
+      summary: creditClass.metadata.purchaseSummary,
       // summary: 'Your purchase restores healthy grasslands, sequesters carbon in soil, increases biodiversity, and improves animal welfare.',
       // Variables for older email version,
       // keeping it here just in case...
