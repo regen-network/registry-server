@@ -313,7 +313,6 @@ router.post(
                         false,
                       ]
                     );
-                    res.sendStatus(200);
                   } catch (err) {
                     console.error('Error transfering credits', err);
                     res.status(500).send(err);
