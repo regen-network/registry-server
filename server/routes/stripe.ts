@@ -190,7 +190,7 @@ router.post(
                 if (product && product.metadata && product.metadata.account_id && charge) {
                   try {
                     const transfer = await stripe.transfers.create({
-                      amount: getTransferAmount(item.amount, Math.round(charge.balance_transaction.fee / lines.length)),
+                      amount: getTransferAmount(item.amount_total, Math.round(charge.balance_transaction.fee / lines.length)),
                       currency: charge.currency,
                       destination: product.metadata.account_id,
                       source_transaction: charge.id,
@@ -236,7 +236,7 @@ router.post(
             }
 
             // Send confirmation email
-            if (runner) {
+            if (runner && result) {
               transferResult = result.rows[0].transfer_credits;
               console.log('transferResult', transferResult)
               try {
@@ -250,7 +250,7 @@ router.post(
                 res.status(400).send(err);
               }
             } else {
-              res.sendStatus(200);
+              res.sendStatus(400);
             }
           } catch (err) {
             console.error(err);
@@ -283,6 +283,7 @@ router.post(
                   // Transfer 90% to Connect account minus the Stripe fees
                   if (product && product.metadata && product.metadata.account_id) {
                     try {
+                      console.log(item)
                       const transfer = await stripe.transfers.create({
                         amount: getTransferAmount(item.amount, Math.round(charge.balance_transaction.fee / lineItems.data.length)),
                         currency: charge.currency,
@@ -329,7 +330,7 @@ router.post(
               }
 
               // Send confirmation email
-              if (runner) {
+              if (runner && result) {
                 transferResult = result.rows[0].transfer_credits;
                 try {
                   await runner.addJob('credits_transfer__send_confirmation', {
@@ -342,7 +343,7 @@ router.post(
                   res.status(400).send(err);
                 }
               } else {
-                res.sendStatus(200);
+                res.sendStatus(400);
               }
 
             } else {
