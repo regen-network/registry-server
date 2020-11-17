@@ -150,14 +150,14 @@ router.post(
                     res.sendStatus(200);
                   } catch (err) {
                     console.error('Error updating Stripe invoice', err);
-                    res.status(500).end();
+                    res.status(500).send(err);
                   }
                 } else {
                   res.sendStatus(200);
                 }
               } catch (err) {
                 console.error('Error getting Stripe product', err);
-                res.status(500).end();
+                res.status(500).send(err);
               }
             } else {
               // No line items, nothing to do
@@ -189,15 +189,16 @@ router.post(
                 // Transfer 90% to Connect account minus the Stripe fees
                 if (product && product.metadata && product.metadata.account_id && charge) {
                   try {
+                    console.log('item', item)
                     const transfer = await stripe.transfers.create({
                       amount: getTransferAmount(item.amount_total, Math.round(charge.balance_transaction.fee / lines.length)),
                       currency: charge.currency,
                       destination: product.metadata.account_id,
                       source_transaction: charge.id,
-                    })
+                    });
                   } catch (err) {
                     console.error('Error transferring', err);
-                    res.status(500).end();
+                    res.status(500).send(err);
                     break;
                   }
                 }
@@ -293,7 +294,7 @@ router.post(
                       })
                     } catch (err) {
                       console.error('Error transferring', err);
-                      res.status(500).end();
+                      res.status(500).send(err);
                       break;
                     }
                   }
