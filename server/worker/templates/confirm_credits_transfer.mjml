@@ -82,13 +82,13 @@
     </mj-column>
     </mj-section>
 
-    <mj-wrapper background-color="#fff" border="1px solid #D2D5D9" padding="30px">
+    <mj-wrapper background-color="#fff" border="1px solid #D2D5D9" padding-top="5px" padding="30px">
       <mj-section>
-        <mj-column width="100%">
-          <mj-text mj-class="muli-text" align="center">
+        <mj-column width="100%" >
+          <mj-text mj-class="muli-text" align="center" >
             <p class="title">Thanks for supporting regenerative agriculture!</p>
           </mj-text>
-          <mj-text mj-class="grey-text" css-class="desc-text">
+          <mj-text mj-class="grey-text">
             <span id="summary">[[summary]]</span>
           </mj-text>
         </mj-column>
@@ -108,7 +108,7 @@
           <mj-text mj-class="muli-text" align="center">
             <p class="title">Spread the world!</p>
           </mj-text>
-          <mj-text padding-bottom="23px" mj-class="grey-text">
+          <mj-text padding-bottom="23px" mj-class="grey-text" css-class="desc-text">
             <span class="desc">[[creditClassSpread]]</span>
           </mj-text>
         </mj-column>

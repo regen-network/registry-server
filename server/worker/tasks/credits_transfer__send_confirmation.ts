@@ -36,6 +36,7 @@ const task: Task = async (inPayload, { addJob }) => {
   const {
     email,
     creditClass,
+    receiptUrl,
   }: CreditsTransferSendConfirmationPayload = inPayload as any;
   const sendEmailPayload: SendEmailPayload = {
     options: {
@@ -45,9 +46,8 @@ const task: Task = async (inPayload, { addJob }) => {
     template: 'confirm_credits_transfer.mjml',
     variables: {
       creditClassSpread: creditClass.metadata.purchaseShare,
-      receiptUrl: '',
+      receiptUrl: receiptUrl,
       summary: creditClass.metadata.purchaseSummary,
-      // summary: 'Your purchase restores healthy grasslands, sequesters carbon in soil, increases biodiversity, and improves animal welfare.',
       // Variables for older email version,
       // keeping it here just in case...
       // purchaseId: purchaseId.slice(0, 8),
