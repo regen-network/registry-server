@@ -283,9 +283,10 @@ router.post(
                   // Transfer 90% to Connect account minus the Stripe fees
                   if (product && product.metadata && product.metadata.account_id) {
                     try {
-                      console.log(item)
+                      console.log('item', item)
                       const transfer = await stripe.transfers.create({
-                        amount: getTransferAmount(item.amount, Math.round(charge.balance_transaction.fee / lineItems.data.length)),
+                        // TODO use item amount_total
+                        amount: getTransferAmount(charge.amount, Math.round(charge.balance_transaction.fee / lineItems.data.length)),
                         currency: charge.currency,
                         destination: product.metadata.account_id,
                         source_transaction: charge.id,
