@@ -7,7 +7,7 @@ const { runnerPromise } = require('../pool');
 let runner;
 runnerPromise.then((res) => {
   runner = res;
-})
+});
 
 const router = express.Router();
 const airtable = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY });

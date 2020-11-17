@@ -28,7 +28,7 @@
     "lodash": "^4.17.19",
     "mailerlite-api-v2-node": "^1.0.2",
     "minimist": "^1.2.5",
-    "mjml": "^4.6.3",
+    "mjml": "^4.7.1",
     "nodemailer": "^6.4.8",
     "pg": "^8.0.3",
     "postgraphile": "^4.7.0",

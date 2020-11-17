@@ -11,7 +11,9 @@ create or replace function transfer_credits(
   currency char(10) default 'USD',
   contact_email text default '',
   auto_retire boolean default true,
-  buyer_name text default ''
+  buyer_name text default '',
+  receipt_url text default '',
+  send_confirmation boolean default true
 ) returns jsonb as $$
 declare
   v_user "user";
@@ -152,16 +154,19 @@ begin
     perform retire_credits(vintage_id, buyer_wallet_id, address_id, units);
   end if;
 
-  perform send_transfer_credits_confirmation(
-    units,
-    credit_price,
-    currency,
-    v_purchase_id ,
-    v_credit_class_version,
-    v_buyer_name,
-    v_email,
-    v_project
-  );
+  if send_confirmation = true then
+    perform send_transfer_credits_confirmation(
+      units,
+      credit_price,
+      currency,
+      v_purchase_id ,
+      v_credit_class_version,
+      v_buyer_name,
+      v_email,
+      v_project,
+      receipt_url
+    );
+  end if;
   
   return jsonb_build_object(
     'purchaseId', v_purchase_id,
@@ -181,11 +186,12 @@ create or replace function send_transfer_credits_confirmation(
   units numeric,
   credit_price numeric,
   currency char(10),
-  v_purchase_id uuid,
-  v_credit_class_version credit_class_version,
-  v_buyer_name text,
-  v_email text,
-  v_project jsonb
+  purchase_id uuid,
+  credit_class_version credit_class_version,
+  buyer_name text,
+  email text,
+  project jsonb,
+  receipt_url text
 ) returns void as $$
 begin
   perform graphile_worker
@@ -193,17 +199,18 @@ begin
     (
       'credits_transfer__send_confirmation',
       json_build_object(
-        'purchaseId', v_purchase_id,
-        'project', v_project,
+        'purchaseId', purchase_id,
+        'project', project,
         'creditClass', jsonb_build_object(
-          'name', v_credit_class_version.name,
-          'metadata', v_credit_class_version.metadata
+          'name', credit_class_version.name,
+          'metadata', credit_class_version.metadata
         ),
-        'ownerName', v_buyer_name,
+        'ownerName', buyer_name,
         'quantity', units,
         'amount', credit_price * units,
         'currency', currency,
-        'email', v_email
+        'email', email,
+        'receiptUrl', receipt_url
       )
     );
 end;
