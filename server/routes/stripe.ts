@@ -204,6 +204,10 @@ router.post(
 
                 // Transfer credits
                 try {
+                  console.log('Number: ', i)
+                  console.log('product', product)
+                  console.log('item', item)
+                  console.log('invoice', invoice)
                   result = await client.query(
                     'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12, $13, $14)',
                     [
@@ -286,7 +290,6 @@ router.post(
                     try {
                       console.log('item', item)
                       const transfer = await stripe.transfers.create({
-                        // TODO use item amount_total
                         amount: getTransferAmount(item.amount_total, Math.round(charge.balance_transaction.fee / lineItems.data.length)),
                         currency: charge.currency,
                         destination: product.metadata.account_id,
