@@ -204,10 +204,6 @@ router.post(
 
                 // Transfer credits
                 try {
-                  console.log('Number: ', i)
-                  console.log('product', product)
-                  console.log('item', item)
-                  console.log('invoice', invoice)
                   result = await client.query(
                     'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12, $13, $14)',
                     [
@@ -222,7 +218,7 @@ router.post(
                       item.currency,
                       invoice.customer_email,
                       true,
-                      invoice.customer_name,
+                      invoice.customer_name || '',
                       charge.receipt_url,
                       false,
                     ]
@@ -240,10 +236,8 @@ router.post(
             }
 
             // Send confirmation email
-            console.log(result)
             if (runner && result) {
               transferResult = result.rows[0].transfer_credits;
-              console.log('transferResult', transferResult)
               try {
                 await runner.addJob('credits_transfer__send_confirmation', {
                   email: invoice.customer_email,
@@ -288,7 +282,6 @@ router.post(
                   // Transfer 90% to Connect account minus the Stripe fees
                   if (product && product.metadata && product.metadata.account_id) {
                     try {
-                      console.log('item', item)
                       const transfer = await stripe.transfers.create({
                         amount: getTransferAmount(item.amount_total, Math.round(charge.balance_transaction.fee / lineItems.data.length)),
                         currency: charge.currency,
@@ -367,7 +360,6 @@ router.post(
       console.error('Error acquiring postgres client', err);
       res.sendStatus(500);
     } finally {
-      console.log('finally')
       if (client) {
         client.release();
       }
