@@ -236,6 +236,7 @@ router.post(
             }
 
             // Send confirmation email
+            console.log(result)
             if (runner && result) {
               transferResult = result.rows[0].transfer_credits;
               console.log('transferResult', transferResult)
@@ -363,6 +364,7 @@ router.post(
       console.error('Error acquiring postgres client', err);
       res.sendStatus(500);
     } finally {
+      console.log('finally')
       if (client) {
         client.release();
       }
