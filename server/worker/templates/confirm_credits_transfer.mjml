@@ -40,10 +40,6 @@
         border-bottom-left-radius: 10px;
         border-bottom-right-radius: 10px;
       }
-      .hero td {
-      	border-top-left-radius: 10px;
-      	border-top-right-radius: 10px;
-      }
       .text {
       	border-left: 1px solid #EFEFEF;
 				border-right: 1px solid #EFEFEF;
@@ -69,6 +65,7 @@
         letter-spacing="1px"
         text-transform="uppercase"
         border="2px solid #B9E1C7" />
+      <mj-class name="section" padding-top="0" background-color="#FAFAFA" border-right="solid 1px #EFEFEF" border-left="solid 1px #EFEFEF" />
       <mj-class name="background" background-color="#f9f9f9" font-size="13px" />
       <mj-class name="muli-text" font-family="Muli,sans-serif" font-weight="900" padding-bottom="0px" padding-left="0px" padding-right="0px" />
       <mj-class name="grey-text" padding-left="0px" padding-right="0px" align="center" color="#545555" font-family="Lato,sans-serif" />
@@ -94,24 +91,31 @@
         </mj-column>
       </mj-section>
 
-      <mj-hero
+      <mj-section padding="0">
+        <mj-column padding="0px" width="100%" background-color="#FAFAFA">
+          <mj-image padding="0" src="https://regen-registry.s3.amazonaws.com/spread-the-word.png" />
+        </mj-column>
+      </mj-section>
+
+      <!-- <mj-hero
         mode="fluid-height"
-        background-width="100%"
         background-url="https://regen-registry.s3.amazonaws.com/Spread+the+Word.png"
         background-color="#FAFAFA"
         padding="160px 0px 0px"
         css-class="hero">
         <mj-text padding="0" css-class="text" height="50px" />
-      </mj-hero>
-      <mj-section padding-top="0" background-color="#FAFAFA" border-right="solid 1px #EFEFEF" border-left="solid 1px #EFEFEF">
+      </mj-hero> -->
+      <mj-section mj-class="section">
         <mj-column width="100%">
           <mj-text mj-class="muli-text" align="center">
             <p class="title">Spread the world!</p>
           </mj-text>
           <mj-text padding-bottom="23px" mj-class="grey-text" css-class="desc-text">
-            <span class="desc">[[creditClassSpread]]</span>
+            <span class="desc">[[creditClassShare]]</span>
           </mj-text>
         </mj-column>
+      </mj-section>
+      <mj-section mj-class="section">
         <mj-group width="50%">
           <mj-column padding="0px 1% 0px 0px" width="24%">
             <mj-image align="center" padding="0px" width="50px" href="https://twitter.com/intent/tweet?url=https://regen.network/buyers" src="https://regen-registry.s3.amazonaws.com/Twitter.png" />
@@ -147,16 +151,21 @@
         </mj-column>
       </mj-section>
 
-      <mj-hero
+      <mj-section padding="0">
+        <mj-column padding="0px" width="100%" background-color="#FAFAFA">
+          <mj-image padding="0" src="https://regen-registry.s3.amazonaws.com/email-feedback-bg.png" />
+        </mj-column>
+      </mj-section>
+
+      <!-- <mj-hero
         mode="fluid-height"
-        background-width="100%"
         background-url="https://regen-registry.s3.amazonaws.com/feedback-bg.png"
         background-color="#FAFAFA"
         padding="180px 0px 0px"
         css-class="hero">
         <mj-text padding="0" css-class="text" height="50px" />
-      </mj-hero>
-      <mj-section padding-top="0" background-color="#FAFAFA" border-right="solid 1px #EFEFEF" border-left="solid 1px #EFEFEF">
+      </mj-hero> -->
+      <mj-section  mj-class="section">
         <mj-column width="100%" css-class="column">
           <mj-text mj-class="muli-text" align="center">
             <p class="title">Share your feedback!</p>

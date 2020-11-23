@@ -45,7 +45,7 @@ const task: Task = async (inPayload, { addJob }) => {
     },
     template: 'confirm_credits_transfer.mjml',
     variables: {
-      creditClassSpread: creditClass.metadata.purchaseShare,
+      creditClassShare: creditClass.metadata.purchaseShare,
       receiptUrl: receiptUrl,
       summary: creditClass.metadata.purchaseSummary,
       // Variables for older email version,
