@@ -92,8 +92,8 @@
       </mj-section>
 
       <mj-section padding="0">
-        <mj-column padding="0px" width="100%" background-color="#FAFAFA">
-          <mj-image padding="0" src="https://regen-registry.s3.amazonaws.com/spread-the-word.png" />
+        <mj-column padding="0px" width="100%">
+          <mj-image padding="0" src="https://regen-registry.s3.amazonaws.com/email-spread-the-word.png" />
         </mj-column>
       </mj-section>
 
@@ -152,7 +152,7 @@
       </mj-section>
 
       <mj-section padding="0">
-        <mj-column padding="0px" width="100%" background-color="#FAFAFA">
+        <mj-column padding="0px" width="100%">
           <mj-image padding="0" src="https://regen-registry.s3.amazonaws.com/email-feedback-bg.png" />
         </mj-column>
       </mj-section>
