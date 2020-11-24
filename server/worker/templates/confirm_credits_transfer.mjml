@@ -97,14 +97,6 @@
         </mj-column>
       </mj-section>
 
-      <!-- <mj-hero
-        mode="fluid-height"
-        background-url="https://regen-registry.s3.amazonaws.com/Spread+the+Word.png"
-        background-color="#FAFAFA"
-        padding="160px 0px 0px"
-        css-class="hero">
-        <mj-text padding="0" css-class="text" height="50px" />
-      </mj-hero> -->
       <mj-section mj-class="section">
         <mj-column width="100%">
           <mj-text mj-class="muli-text" align="center">
@@ -118,7 +110,7 @@
       <mj-section mj-class="section">
         <mj-group width="50%">
           <mj-column padding="0px 1% 0px 0px" width="24%">
-            <mj-image align="center" padding="0px" width="50px" href="https://twitter.com/intent/tweet?url=https://regen.network/buyers" src="https://regen-registry.s3.amazonaws.com/Twitter.png" />
+            <mj-image align="center" padding="0px" width="50px" href="https://twitter.com/intent/tweet?url=https://regen.network/buyers&text=[[twitterShare]]" src="https://regen-registry.s3.amazonaws.com/Twitter.png" />
           </mj-column>
           <mj-column padding="0px 1% 0px 0px" width="24%">
             <mj-image align="center" padding="0px" width="50px" href="https://www.linkedin.com/sharing/share-offsite/?url=https://regen.network/buyers" src="https://regen-registry.s3.amazonaws.com/LinkedIn.png" />
@@ -127,7 +119,7 @@
             <mj-image align="center" padding="0px" width="50px" href="https://www.facebook.com/sharer/sharer.php?u=https://regen.network/buyers" src="https://regen-registry.s3.amazonaws.com/Facebook.png" />
           </mj-column>
           <mj-column padding="0px" width="25%">
-            <mj-image align="center" padding="0px" width="50px" href="https://t.me/share/url?url=https://regen.network/buyers" src="https://regen-registry.s3.amazonaws.com/Telegram.png" />
+            <mj-image align="center" padding="0px" width="50px" href="https://t.me/share/url?url=https://regen.network/buyers&text=[[telegramShare]]" src="https://regen-registry.s3.amazonaws.com/Telegram.png" />
           </mj-column>
         </mj-group>
       </mj-section>
@@ -157,14 +149,6 @@
         </mj-column>
       </mj-section>
 
-      <!-- <mj-hero
-        mode="fluid-height"
-        background-url="https://regen-registry.s3.amazonaws.com/feedback-bg.png"
-        background-color="#FAFAFA"
-        padding="180px 0px 0px"
-        css-class="hero">
-        <mj-text padding="0" css-class="text" height="50px" />
-      </mj-hero> -->
       <mj-section  mj-class="section">
         <mj-column width="100%" css-class="column">
           <mj-text mj-class="muli-text" align="center">

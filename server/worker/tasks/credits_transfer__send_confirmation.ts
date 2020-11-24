@@ -22,6 +22,8 @@ interface CreditsTransferSendConfirmationPayload {
     metadata: {
       purchaseSummary: string;
       purchaseShare: string;
+      twitterShare: string;
+      telegramShare: string;
       type: string;
     };
   };
@@ -46,6 +48,8 @@ const task: Task = async (inPayload, { addJob }) => {
     template: 'confirm_credits_transfer.mjml',
     variables: {
       creditClassShare: creditClass.metadata.purchaseShare,
+      twitterShare: creditClass.metadata.twitterShare,
+      telegramShare: creditClass.metadata.telegramShare,
       receiptUrl: receiptUrl,
       summary: creditClass.metadata.purchaseSummary,
       // Variables for older email version,
