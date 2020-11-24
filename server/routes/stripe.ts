@@ -18,35 +18,73 @@ const { pgPool } = require('../pool');
 const router = express.Router();
 
 router.post(
+  '/create-login-link',
+  bodyParser.json(),
+  getJwt(true),
+  async (req, res) => {
+    const { accountId } = req.body;
+
+    try {
+      const loginLink = await stripe.accounts.createLoginLink(accountId);
+      res.json(loginLink);
+    } catch (err) {
+      res.status(400).send(err);
+    }
+})
+
+router.post(
   '/create-account-link',
   bodyParser.json(),
   getJwt(true),
   async (req: UserRequest, res) => {
+    let client;
     try {
-      const { email, refreshUrl, returnUrl } = req.body;
-      const account = await stripe.accounts.create({
-        email,
-        type: 'express',
-        country: 'AU',
-        capabilities: {
-          transfers: {
-            requested: true,
-          },
-        },
-        tos_acceptance: {
-          service_agreement: 'recipient',
-        },
-      });
+      client = await pgPool.connect();
+      try {
+        const { email, refreshUrl, returnUrl } = req.body;
 
-      const accountLink = await stripe.accountLinks.create({
-        account: account.id,
-        refresh_url: refreshUrl,
-        return_url: returnUrl,
-        type: 'account_onboarding',
-      });
-      res.json(accountLink);
+        // Create stripe account
+        const account = await stripe.accounts.create({
+          email,
+          type: 'express',
+          country: 'AU',
+          capabilities: {
+            transfers: {
+              requested: true,
+            },
+          },
+          tos_acceptance: {
+            service_agreement: 'recipient',
+          },
+        });
+
+        // Update user in the db
+        await client.query(
+          'update "user" set stripe_account_id=$2 where email=$1',
+          [
+            email,
+            account.id,
+          ]
+        );
+
+        // Create stripe account link for on boarding
+        const accountLink = await stripe.accountLinks.create({
+          account: account.id,
+          refresh_url: refreshUrl,
+          return_url: returnUrl,
+          type: 'account_onboarding',
+        });
+        res.json(accountLink);
+      } catch (err) {
+        res.status(400).send(err);
+      }
     } catch (err) {
-      res.status(400).send(err);
+      console.error('Error acquiring postgres client', err);
+      res.sendStatus(500);
+    } finally {
+      if (client) {
+        client.release();
+      }
     }
   }
 );
@@ -117,57 +155,6 @@ router.post(
       let invoice;
       let lines;
       switch (event.type) {
-        case 'invoiceitem.created':
-        case 'invoiceitem.updated':
-        case 'invoiceitem.deleted':
-          const invoiceId = event.data.object.invoice;
-          try {
-            lines = await stripe.invoices.listLineItems(invoiceId);
-            if (lines.data.length > 0) {
-              let amount: number = 0;
-              // Get connected account id from product
-              // Assuming the same connect account_id to be used for all line items
-              try {
-                const product = await stripe.products.retrieve(lines.data[0].price.product);
-
-                // Get total amount
-                for (let i = 0; i < lines.data.length; i++) {
-                  amount = amount + lines.data[i].amount;
-                }
-
-                // Update invoice with connected account id
-                if (product.metadata && product.metadata.account_id) {
-                  try {
-                    await stripe.invoices.update(
-                      invoiceId,
-                      {
-                        application_fee_amount: amount * 0.10,
-                        transfer_data: {
-                          destination: product.metadata.account_id,
-                        },
-                      },
-                    );
-                    res.sendStatus(200);
-                  } catch (err) {
-                    console.error('Error updating Stripe invoice', err);
-                    res.status(500).send(err);
-                  }
-                } else {
-                  res.sendStatus(200);
-                }
-              } catch (err) {
-                console.error('Error getting Stripe product', err);
-                res.status(500).send(err);
-              }
-            } else {
-              // No line items, nothing to do
-              res.sendStatus(200);
-            }
-          } catch (err) {
-            console.error('Error getting Stripe invoice line items', err);
-            res.sendStatus(500);
-          }
-          break;
         case 'invoice.payment_succeeded':
           invoice = event.data.object;
           lines = invoice.lines.data;
