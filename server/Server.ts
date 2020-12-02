@@ -1,98 +1,48 @@
 import * as express from 'express';
 import * as path from 'path';
-import * as Airtable from 'airtable';
-import { Pool, Client, PoolConfig } from 'pg';
 import { postgraphile } from 'postgraphile';
 import * as PgManyToManyPlugin from '@graphile-contrib/pg-many-to-many';
-import * as jwks from 'jwks-rsa';
-import * as jwt from 'express-jwt';
 import * as fileUpload from 'express-fileupload';
 import * as cors from 'cors';
 import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { UserRequest, UserIncomingMessage } from './types';
-import * as fs from 'fs';
+import getJwt from './middleware/jwt';
 
-import { main as workerMain } from './worker/worker';
+const url = require('url');
+
+const { pgPool } = require('./pool');
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
-const app = express();
+const REGEN_HOSTNAME_PATTERN = /regen\.network$/;
+const NETLIFY_DEPLOY_PREVIEW_HOSTNAME_PATTERN = /deploy-preview-\d+--regen-website\.netlify\.app$/;
 
-const stripe = require('stripe')(process.env.STRIPE_API_KEY);
-const airtableBase = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE);
+const corsOptions = (req, callback) => {
+  let options;
+  if (process.env.NODE_ENV !== 'production') {
+    options = { origin: true };
+  } else {
+    const originURL = req.header('Origin') && url.parse(req.header('Origin'));
+    if (originURL && (originURL.hostname.match(REGEN_HOSTNAME_PATTERN) ||
+      originURL.hostname.match(NETLIFY_DEPLOY_PREVIEW_HOSTNAME_PATTERN))) {
+      options = { origin: true }; // reflect (enable) the requested origin in the CORS response
+    } else {
+      options = { origin: false }; // disable CORS for this request
+    }
+  }
 
-app.use(fileUpload());
-app.use(cors());
-
-app.use(jwt({
-  secret: jwks.expressJwtSecret({
-    cache: true,
-    rateLimit: true,
-    jwksRequestsPerMinute: 5,
-    jwksUri: 'https://regen-network-registry.auth0.com/.well-known/jwks.json'
-  }),
-  credentialsRequired: false,
-  audience: 'https://regen-registry-server.herokuapp.com/',
-  issuer: 'https://regen-network-registry.auth0.com/',
-  algorithms: ['RS256']
-}));
-
-const pgPoolConfig: PoolConfig = {
-  connectionString: process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn',
-};
-
-if (process.env.NODE_ENV === 'production') {
-  pgPoolConfig.ssl = {
-    ca: fs.readFileSync(`${__dirname}/../config/rds-combined-ca-bundle.pem`),
-  };
+  callback(null, options) // callback expects two parameters: error and options
 }
 
-const pgPool = new Pool(pgPoolConfig);
+const app = express();
 
-let runner;
-workerMain(pgPool)
-  .then((res) => {
-    runner = res;
-  })
-  .catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+app.use(fileUpload());
+app.use(cors(corsOptions));
 
-// TODO move to ./routes/
-app.post('/buyers-info', bodyParser.json(), (req, res: express.Response) => {
-  const { email, name, orgName, budget } = req.body;
-  airtableBase(process.env.AIRTABLE_BUYERS_TABLE).create(
-    [
-      {
-        fields: {
-          "Full Name": name,
-          "Email address": email,
-          "Organization Name": orgName,
-          Budget: budget,
-        },
-      },
-    ],
-    function (err, records) {
-      if (err) {
-        console.error(err);
-        res.status(400).send(err);
-      }
-      if (runner) {
-        runner.addJob('interest_buyers__send_confirmation', { email }).then(() => {
-          res.sendStatus(200);
-        }, (err) => {
-          res.status(400).send(err);
-        });
-      } else {
-        res.sendStatus(200);
-      }
-    }
-  );
-});
+app.use(getJwt(false));
 
 app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Response) => {
   // Create Postgres ROLE for Auth0 user
@@ -129,107 +79,6 @@ app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Respon
   }
 });
 
-app.post('/webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event, client, item;
-
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_ENDPOINT_SECRET);
-  } catch (err) {
-    res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  try {
-    client = await pgPool.connect();
-  } catch (err) {
-    res.sendStatus(500);
-    console.error('Error acquiring postgres client', err);
-  }
-
-  // Handle the event
-  switch (event.type) {
-    case 'invoice.payment_succeeded':
-      const invoice = event.data.object;
-      const lines = invoice.lines.data;
-
-      if (lines.length) {
-        item = lines[0];
-        try {
-          // Transfer credits
-          await client.query(
-            "SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10)",
-            [
-              invoice.metadata.vintage_id,
-              invoice.metadata.wallet_id,
-              invoice.metadata.home_address_id,
-              item.quantity,
-              (item.amount / 100) / item.quantity,
-              "succeeded",
-              invoice.id,
-              "stripe_invoice",
-              item.currency,
-              invoice["customer_email"],
-            ]
-          );
-          res.sendStatus(200);
-        } catch (err) {
-          res.sendStatus(500);
-          console.error('Error transfering credits', err);
-        }
-      } else {
-        return res.status(400).end();
-      }
-      break;
-    case 'checkout.session.completed':
-      const session = event.data.object;
-      const clientReferenceId = session['client_reference_id']; // buyer wallet id and address id
-
-      const items = session['display_items'];
-      if (items.length) {
-        item = items[0];
-        try {
-          const product = await stripe.products.retrieve(item.sku.product);
-          try {
-            const { walletId, addressId } = JSON.parse(clientReferenceId);
-
-            // Transfer credits
-            await client.query(
-              "SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10)",
-              [
-                product.metadata.vintage_id,
-                walletId,
-                addressId,
-                item.quantity,
-                item.amount / 100,
-                "succeeded",
-                session.id,
-                "stripe_checkout",
-                item.currency,
-                session["customer_email"],
-              ]
-            );
-            res.sendStatus(200);
-          } catch (err) {
-            res.sendStatus(500);
-            console.error('Error transfering credits', err);
-          }
-        } catch (err) {
-          res.sendStatus(500);
-          console.error('Error getting Stripe product', err);
-        }
-        finally {
-          client.release();
-        }
-      } else {
-        return res.status(400).end();
-      }
-      break;
-    default:
-      // Unexpected event type
-      return res.status(400).end();
-  }
-});
-
 app.use(postgraphile(pgPool, 'public', {
   graphiql: true,
   watchPg: true,
@@ -249,6 +98,9 @@ app.use(postgraphile(pgPool, 'public', {
 }));
 
 app.use(require('./routes/mailerlite'));
+app.use(require('./routes/contact'));
+app.use(require('./routes/buyers-info'));
+app.use(require('./routes/stripe'));
 
 const port = process.env.PORT || 5000;
 

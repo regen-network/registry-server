@@ -2,331 +2,184 @@
   <mj-head>
     <mj-font name="Muli" href="https://fonts.googleapis.com/css2?family=Muli:wght@800;900&display=swap" />
     <mj-style>
-      @media (min-width:600px) {
-        .summary-content {
-        	padding-bottom: 30px;
-        }
-        .summary-item {
-       		width: 35%;
-        	padding-bottom: 30px;
-        }
-      }
       @media (max-width:600px) {
-      	.mobile-summary {
-     			display: block !important;
-      	}
-      	.connect {
-      		font-size: 14px !important;
-          line-height: 18px !important;
+        .title {
+          font-size: 21px !important;
+          line-height: 150% !important;
         }
-        .project-info {
-      		font-size: 12px !important;
-      		line-height: 12px !important;
-        }
-        .order-summary {
-          padding-top: 10px !important;
-        }
-      	.desktop-summary {
-      		display: none;
-      	}
-      	.summary-row {
-          padding-bottom: 19px !important;
-        }
-      	.summary-content {
-     			font-size: 16px !important;
-          line-height: 260% !important;
-      	}
-      	.mobile-summary {
-      		padding-left: 0 !important;
-      		padding-right: 0 !important;
-      	}
-        .summary-item {
-          font-size: 12px !important;
-        }
-        .overlay {
-          bottom: 18px !important;
-          left: 18px !important;
-        }
-        .bottom-link {
-          font-size: 14px !important;
-        }
-        #hurray {
-      		font-size: 18px !important;
-        }
-        #summary {
+        .desc {
           font-size: 16px !important;
         }
-        .main-column td {
-          padding: 10px !important;
+        #summary {
+          font-size: 18px !important;
+        }
+        .desc-text div {
+          padding-right: 10px !important;
+          padding-left: 10px !important;
+        }
+        .button td {
+          padding-right: 0px !important;
+          padding-left: 0px !important;
         }
       }
     </mj-style>
     <mj-style inline="inline">
-      #hurray {
-      	font-size: 21px;
+      .title {
+        font-size: 24px;
+        line-height: 145%;
       }
-      .bottom-link {
-        font-size: 16px;
+      .desc {
+        font-size: 18px;
+        line-height: 150%;
       }
       #summary {
-      	font-size: 18px;
+        font-size: 22px;
+        line-height: 150%;
       }
-      .project-background {
-				position: relative;
-      	padding-top: 30px;
+      .section, .section table {
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
       }
-      .project-name {
-      	color: #4FB573;
-      	font-weight: bold;
-      	text-decoration: none;
+      .text {
+      	border-left: 1px solid #EFEFEF;
+				border-right: 1px solid #EFEFEF;
       }
-      .overlay {
-      	text-transform: uppercase;
-      	position: absolute;
-      	bottom: 30px;
-      	left: 30px;
-        font-family: Muli, sans-serif;
-     		background: #3D7ACF;
-        box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.1);
-        border-radius: 50px;
-      	color: #FFFFFF;
-      	font-size: 12px;
-      	padding: 7px 15px;
-      	font-weight: 900;
+      .desc-text div {
+      	padding-right: 40px;
+        padding-left: 40px;
       }
-      .summary-item {
-      	text-transform: uppercase;
-        font-family: Muli, sans-serif;
-        font-weight: 800;
-        font-size: 14px;
-      	color: #8F8F8F;
-      	vertical-align: baseline;
-      }
-      .summary-content {
-        font-family: Lato, sans-serif;
-        font-size: 18px;
-      	color: #000;
-      	vertical-align: baseline;
-      }
-      .order-summary {
-      	padding-top: 30px;
-      }
-      .mobile-summary {
-     		display: none;
-      }
-      .project-info {
-      	font-size: 14px;
-      	line-height: 40px;
-      }
-      .desktop-summary, .mobile-summary {
-      	padding-right: 0 !important;
-      	padding-left: 0 !important;
-      }
-      .main-column td, .main-section, .main-section table {
-        border-top-left-radius: 5px;
-        border-top-right-radius: 5px;
-      }
-      .social-section-bottom, .social-section-bottom table {
-        border-bottom-left-radius: 5px;
-        border-bottom-right-radius: 5px;
-      }
-      .connect {
-        font-family: Muli, sans-serif;
-        font-weight: 800;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        color: #202020;
-      	font-size: 18px;
-        line-height: 23px;
+      .button td {
+        padding-right: 40px;
+        padding-left: 40px;
       }
     </mj-style>
     
     <mj-attributes>
+      <mj-class
+        name="button"
+        font-size="18px"
+        font-family="Muli,sans-serif"
+        font-weight="800"
+        background-color="white"
+        color="#4FB573"
+        letter-spacing="1px"
+        text-transform="uppercase"
+        border="2px solid #B9E1C7" />
+      <mj-class name="section" padding-top="0" background-color="#FAFAFA" border-right="solid 1px #EFEFEF" border-left="solid 1px #EFEFEF" />
       <mj-class name="background" background-color="#f9f9f9" font-size="13px" />
-      <mj-class name="muli-text" font-family="Muli,sans-serif" font-weight="900" padding-left="0px" padding-right="0px" />
+      <mj-class name="muli-text" font-family="Muli,sans-serif" font-weight="900" padding-bottom="0px" padding-left="0px" padding-right="0px" />
       <mj-class name="grey-text" padding-left="0px" padding-right="0px" align="center" color="#545555" font-family="Lato,sans-serif" />
     </mj-attributes>
   </mj-head>
 
   <mj-body mj-class="background">
-    <mj-section>
-      <mj-column>
-        <mj-image width="181px" src="https://regen-registry.s3.amazonaws.com/Black.png" />
-      </mj-column>
+    <mj-section padding-bottom="0">
+    <mj-column>
+      <mj-image padding="0" src="https://regen-registry.s3.amazonaws.com/Regen+Network+Email+Header.png" />
+    </mj-column>
     </mj-section>
 
-    <mj-section background-color="#D2D5D9" padding="1px" css-class="main-section">
-      <mj-column padding="30px" css-class="main-column" width="100%" background-color="#fff">
-        <mj-image width="202px" src="https://regen-registry.s3.amazonaws.com/Large.png" />
-        
-        <mj-text mj-class="muli-text" align="center">
-          <p id="hurray">Hurray! Your purchase was successful!</p>
-        </mj-text>
-        <mj-text mj-class="grey-text">
-          <span id="summary">A summary of your purchase for your records is below.</span>
-        </mj-text>
-        
-        <mj-raw>
-          <tr>
-            <td>
-              <div class="project-background">
-                <img height="auto" src="[[projectImage]]" style="border:0;border-radius:10px;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="488" />
-                <!-- <div class="overlay">[[creditClassType]]</div> -->
-              </div>
-            </td>
-          </tr>
-        </mj-raw>
-        
-        <mj-text mj-class="muli-text" font-size="24px">
-          <div class="order-summary">Order summary</div>
-        </mj-text>
-        
-        <mj-table css-class="desktop-summary">
-          <tr class="summary-row">
-            <td class="summary-item">credit</td>
-            <td class="summary-content">[[creditClassName]]</td>
-          </tr>
-          <tr class="summary-row">
-            <td class="summary-item">project</td>
-            <td class="summary-content">
-              <a href="[[projectLink]]" class="project-name">[[projectName]]</a>
-              <div class="project-info">
-                <img height="15px" src="https://regen-registry.s3.amazonaws.com/Small.png" />
-                <span>&nbsp;&nbsp;[[projectLocation]] | [[projectArea]] [[projectAreaUnit]]</span>
-              </div>
-            </td>
-          </tr>
-          <tr class="summary-row">
-            <td class="summary-item"># of credits</td>
-            <td class="summary-content">[[quantity]]</td>
-          </tr>
-          <tr class="summary-row">
-            <td class="summary-item">price</td>
-            <td class="summary-content">$[[amount]] [[currency]]</td>
-          </tr>
-          <tr class="summary-row">
-            <td class="summary-item">date</td>
-            <td class="summary-content">[[date]]</td>
-          </tr>
-          <tr class="summary-row">
-            <td class="summary-item">owner</td>
-            <td class="summary-content">[[ownerName]]</td>
-          </tr>
-          <tr class="summary-row">
-            <td class="summary-item">transaction id</td>
-            <td class="summary-content">[[purchaseId]]</td>
-          </tr>
-        </mj-table>
-        
-        <mj-text css-class="mobile-summary">
-          <div class="summary-row">
-            <div class="summary-item">
-              credit
-          	</div>
-            <div class="summary-content">
-              [[creditClassName]]
-          	</div>
-          </div>
-          <div class="summary-row">
-            <div class="summary-item">
-              project
-          	</div>
-            <div class="summary-content">
-              <a href="[[projectLink]]" class="project-name">[[projectName]]</a>
-              <div class="project-info">
-                <img height="15px" src="https://regen-registry.s3.amazonaws.com/Small.png" />
-                <span>&nbsp;&nbsp;[[projectLocation]] | [[projectArea]][[projectAreaUnit]]</span>
-              </div>
-          	</div>
-          </div>
-          <div class="summary-row">
-            <div class="summary-item">
-              # of credits
-          	</div>
-            <div class="summary-content">
-              [[quantity]]
-          	</div>
-          </div>
-          <div class="summary-row">
-            <div class="summary-item">
-              price
-          	</div>
-            <div class="summary-content">
-              [[amount]]
-          	</div>
-          </div>
-          <div class="summary-row">
-            <div class="summary-item">
-              date
-          	</div>
-            <div class="summary-content">
-              [[date]]
-          	</div>
-          </div>
-          <div class="summary-row">
-            <div class="summary-item">
-              owner
-          	</div>
-            <div class="summary-content">
-              [[ownerName]]
-          	</div>
-          </div>
-          <div class="summary-row">
-            <div class="summary-item">
-              transaction id
-          	</div>
-            <div class="summary-content">
-              [[purchaseId]]
-          	</div>
-          </div>
-        </mj-text>
-        
-      </mj-column>
-    </mj-section>
+    <mj-wrapper background-color="#fff" border="1px solid #D2D5D9" padding-top="5px" padding="30px">
+      <mj-section>
+        <mj-column width="100%" >
+          <mj-text mj-class="muli-text" align="center" >
+            <p class="title">Thanks for supporting regenerative agriculture!</p>
+          </mj-text>
+          <mj-text mj-class="grey-text">
+            <span id="summary">[[summary]]</span>
+          </mj-text>
+        </mj-column>
+      </mj-section>
 
-    <mj-section background-color="#D2D5D9" padding-left="1px" padding-right="1px" padding-bottom="0px" padding-top="0px">
-      <mj-column padding-left="40px" padding-right="40px" padding-top="40px" width="100%" background-color="#F4F4F4">
-        <mj-text align="center">
-          <div class="connect">connect</div>
-        </mj-text>
-		  </mj-column>
-    </mj-section>
-    
-    <mj-section padding-left="1%" padding-top="20px" border-right="1px solid #D2D5D9" border-left="1px solid #D2D5D9" background-color="#F4F4F4" padding-top="0px">
-      <mj-group width="50%">
-        <mj-column padding="0px 1% 0px 0px" width="24%">
-          <mj-image align="center" padding="0px" width="50px" href="https://www.instagram.com/regennetwork/" src="https://regen-registry.s3.amazonaws.com/Instagram.png" />
-      	</mj-column>
-        <mj-column padding="0px 1% 0px 0px" width="24%">
-          <mj-image align="center" padding="0px" width="50px" href="https://www.linkedin.com/company/regen-network/" src="https://regen-registry.s3.amazonaws.com/LinkedIn.png" />
+      <mj-section padding="0">
+        <mj-column padding="0px" width="100%">
+          <mj-image padding="0" src="https://regen-registry.s3.amazonaws.com/email-spread-the-word.png" />
         </mj-column>
-        <mj-column padding="0px" width="25%">
-          <mj-image align="center" padding="0px" width="50px" href="https://facebook.com/weareregennetwork" src="https://regen-registry.s3.amazonaws.com/Facebook.png" />
+      </mj-section>
+
+      <mj-section mj-class="section">
+        <mj-column width="100%">
+          <mj-text mj-class="muli-text" align="center">
+            <p class="title">Spread the world!</p>
+          </mj-text>
+          <mj-text padding-bottom="23px" mj-class="grey-text" css-class="desc-text">
+            <span class="desc">[[creditClassShare]]</span>
+          </mj-text>
         </mj-column>
-        <mj-column padding="0px" width="25%">
-          <mj-image align="center" padding="0px" width="50px" href="http://t.me/regennetwork_public" src="https://regen-registry.s3.amazonaws.com/Telegram.png" />
+      </mj-section>
+      <mj-section mj-class="section">
+        <mj-group width="50%">
+          <mj-column padding="0px 1% 0px 0px" width="24%">
+            <mj-image align="center" padding="0px" width="50px" href="https://twitter.com/intent/tweet?url=https://regen.network/buyers&text=[[twitterShare]]" src="https://regen-registry.s3.amazonaws.com/Twitter.png" />
+          </mj-column>
+          <mj-column padding="0px 1% 0px 0px" width="24%">
+            <mj-image align="center" padding="0px" width="50px" href="https://www.linkedin.com/sharing/share-offsite/?url=https://regen.network/buyers" src="https://regen-registry.s3.amazonaws.com/LinkedIn.png" />
+          </mj-column>
+          <mj-column padding="0px" width="25%">
+            <mj-image align="center" padding="0px" width="50px" href="https://www.facebook.com/sharer/sharer.php?u=https://regen.network/buyers" src="https://regen-registry.s3.amazonaws.com/Facebook.png" />
+          </mj-column>
+          <mj-column padding="0px" width="25%">
+            <mj-image align="center" padding="0px" width="50px" href="https://t.me/share/url?url=https://regen.network/buyers&text=[[telegramShare]]" src="https://regen-registry.s3.amazonaws.com/Telegram.png" />
+          </mj-column>
+        </mj-group>
+      </mj-section>
+      <mj-section background-color="#EFEFEF" padding-left="1px" padding-right="1px" padding-top="0px" padding-bottom="1px" css-class="section">
+        <mj-column padding="0px" width="100%" background-color="#FAFAFA">
+          <mj-text height="10px" />
         </mj-column>
-      </mj-group>
-    </mj-section>
-    
-    <mj-section background-color="#D2D5D9" padding-left="1px" padding-right="1px" padding-top="0px" padding-bottom="1px" css-class="social-section-bottom">
-      <mj-column padding="0px" width="100%" background-color="#F4F4F4">
-        <mj-text height="10px" />
-      </mj-column>
-    </mj-section>
-    
+      </mj-section>
+
+      <mj-section>
+        <mj-column>
+          <mj-image width="108px" padding-bottom="27px" padding-top="55px" src="https://regen-registry.s3.amazonaws.com/email-receipt.png" />
+          <mj-button
+            css-class="button"
+            mj-class="button"
+            padding-bottom="40px"
+            href="[[receiptUrl]]"
+          >
+            view my receipt
+          </mj-button>
+        </mj-column>
+      </mj-section>
+
+      <mj-section padding="0">
+        <mj-column padding="0px" width="100%">
+          <mj-image padding="0" src="https://regen-registry.s3.amazonaws.com/email-feedback-bg.png" />
+        </mj-column>
+      </mj-section>
+
+      <mj-section  mj-class="section">
+        <mj-column width="100%" css-class="column">
+          <mj-text mj-class="muli-text" align="center">
+            <p class="title">Share your feedback!</p>
+          </mj-text>
+          <mj-text padding-bottom="23px" css-class="desc-text" mj-class="grey-text">
+            <span class="desc">We’d love to hear from you on how we can improve the Regen Registry to make a bigger difference.</span>
+          </mj-text>
+          <mj-button
+            css-class="button"
+            mj-class="button"
+            href="/"
+          >
+            take our survey
+          </mj-button>
+        </mj-column>
+      </mj-section>
+      <mj-section background-color="#EFEFEF" padding-left="1px" padding-right="1px" padding-top="0px" padding-bottom="1px" css-class="section">
+        <mj-column padding="0px" width="100%" background-color="#FAFAFA">
+          <mj-text height="10px" />
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+
     <mj-section>
       <mj-column>
-        <mj-image width="87px" src="https://regen-registry.s3.amazonaws.com/Black.png" />
+        <mj-image width="90px" src="https://regen-registry.s3.amazonaws.com/Black.png" />
         <mj-text mj-class="grey-text">
-          <a class="bottom-link" style="text-decoration: none; color: #545555;" href="mailto:hello@regen.network">hello@regen.network</a>
-          &nbsp;
-          <span class="bottom-link" style="color: #4FB573">·</span>
-          &nbsp;
           <a class="bottom-link" style="text-decoration: none; color: #545555;" href="https://www.regen.network/">www.regen.network</a>
         </mj-text>
       </mj-column>
     </mj-section>
-
-  </mj-body>
+  </md-body>
 </mjml>

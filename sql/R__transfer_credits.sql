@@ -9,7 +9,11 @@ create or replace function transfer_credits(
   stripe_id text default '',
   p_type purchase_type default 'offline'::purchase_type,
   currency char(10) default 'USD',
-  contact_email text default ''
+  contact_email text default '',
+  auto_retire boolean default true,
+  buyer_name text default '',
+  receipt_url text default '',
+  send_confirmation boolean default true
 ) returns jsonb as $$
 declare
   v_user "user";
@@ -132,7 +136,11 @@ begin
   order by created_at desc limit 1;
 
   -- buyer's name
-  select name into v_buyer_name from party where wallet_id = buyer_wallet_id;
+  if buyer_name = '' then
+    select name into v_buyer_name from party where wallet_id = buyer_wallet_id;
+  else
+    v_buyer_name = buyer_name;
+  end if;
 
   -- buyer's contact email
   if contact_email = '' then
@@ -141,24 +149,25 @@ begin
     v_email = contact_email;
   end if;
 
-  perform graphile_worker
-    .add_job
-    (
-      'credits_transfer__send_confirmation',
-      json_build_object(
-        'purchaseId', v_purchase_id,
-        'project', v_project,
-        'creditClass', jsonb_build_object(
-          'name', v_credit_class_version.name,
-          'metadata', v_credit_class_version.metadata
-        ),
-        'ownerName', v_buyer_name,
-        'quantity', units,
-        'amount', credit_price * units,
-        'currency', currency,
-        'email', v_email
-      )
+  -- retire credits if auto_retire true
+  if auto_retire = true then
+    perform retire_credits(vintage_id, buyer_wallet_id, address_id, units);
+  end if;
+
+  if send_confirmation = true then
+    perform send_transfer_credits_confirmation(
+      units,
+      credit_price,
+      currency,
+      v_purchase_id ,
+      v_credit_class_version,
+      v_buyer_name,
+      v_email,
+      v_project,
+      receipt_url
     );
+  end if;
+  
   return jsonb_build_object(
     'purchaseId', v_purchase_id,
     'project', v_project,
@@ -168,6 +177,42 @@ begin
     ),
     'ownerName', v_buyer_name
   );
+end;
+$$ language plpgsql strict volatile
+set search_path
+to pg_catalog, public, pg_temp;
+
+create or replace function send_transfer_credits_confirmation(
+  units numeric,
+  credit_price numeric,
+  currency char(10),
+  purchase_id uuid,
+  credit_class_version credit_class_version,
+  buyer_name text,
+  email text,
+  project jsonb,
+  receipt_url text
+) returns void as $$
+begin
+  perform graphile_worker
+    .add_job
+    (
+      'credits_transfer__send_confirmation',
+      json_build_object(
+        'purchaseId', purchase_id,
+        'project', project,
+        'creditClass', jsonb_build_object(
+          'name', credit_class_version.name,
+          'metadata', credit_class_version.metadata
+        ),
+        'ownerName', buyer_name,
+        'quantity', units,
+        'amount', credit_price * units,
+        'currency', currency,
+        'email', email,
+        'receiptUrl', receipt_url
+      )
+    );
 end;
 $$ language plpgsql strict volatile security definer
 set search_path

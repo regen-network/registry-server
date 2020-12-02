@@ -77,6 +77,11 @@ begin
     (email, avatar, auth0_sub, v_party.id, email like '%@regen.network', updates)
   returning * into v_user;
 
+  -- Insert admin if applicable
+  if email like '%@regen.network' and auth0_sub is not null then
+    insert into admin (auth0_sub) values (auth0_sub);
+  end if;
+
   -- Refresh the user
   select *
   into v_user

@@ -2,9 +2,13 @@ version: '3'
 services:
   postgres:
     image: postgis/postgis:12-master
+    restart: always
     environment:
-      - POSTGRES_DB=xrn
+      - POSTGRES_MULTIPLE_DB=regen_registry,regen_registry_test
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     ports:
       - "5432:5432"
     volumes:
       - ./.postgres:/var/lib/postgresql/data
+      - ./scripts:/docker-entrypoint-initdb.d

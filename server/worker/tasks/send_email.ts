@@ -34,13 +34,16 @@ const task: Task = async (inPayload) => {
   const payload: SendEmailPayload = inPayload as any;
   const { options: inOptions, template, variables } = payload;
   const options = {
-    from: process.env.SES_EMAIL || 'marie@regen.network',
+    from: `Regen Network <${process.env.SES_EMAIL}>`,
     ...inOptions,
   };
   if (template) {
     const templateFn = await loadTemplate(template);
-    const html = await templateFn(variables);
-    const html2textableHtml = html.replace(/(<\/?)div/g, '$1p');
+    let html = await templateFn(variables);
+    html = html.replace(/&lt;i&gt;/g, '<i>').replace(/&lt;\/i&gt;/g, '</i>');
+
+    const html2textableHtml = html
+      .replace(/(<\/?)div/g, '$1p');
     const text = html2text
       .fromString(html2textableHtml, {
         wordwrap: 120,
