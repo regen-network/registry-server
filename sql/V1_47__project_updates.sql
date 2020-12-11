@@ -22,9 +22,3 @@ CREATE INDEX ON project
 -- Add human-readable ids for methodology and credit_class
 ALTER TABLE credit_class add column handle text UNIQUE;
 ALTER TABLE methodology add column handle text UNIQUE;
-
-
-insert into methodology_version
-  (id, name, version, date_developed,boundary)
-values
-  ('0bd8fbba-8314-11ea-9fe0-a0999b1d07df', 'Carbon<i>Plus</i> Grasslands', 'v0.9', '2020-10-16', 'POINT(0 0)');
