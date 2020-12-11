@@ -30,15 +30,16 @@ router.post('/buyers-info', bodyParser.json(), (req, res: express.Response) => {
       if (err) {
         console.error(err);
         res.status(400).send(err);
-      }
-      if (runner) {
-        runner.addJob('interest_buyers__send_confirmation', { email }).then(() => {
-          res.sendStatus(200);
-        }, (err) => {
-          res.status(400).send(err);
-        });
       } else {
-        res.sendStatus(200);
+        if (runner) {
+          runner.addJob('interest_buyers__send_confirmation', { email }).then(() => {
+            res.sendStatus(200);
+          }, (err) => {
+            res.status(400).send(err);
+          });
+        } else {
+          res.sendStatus(200);
+        }
       }
     }
   );
