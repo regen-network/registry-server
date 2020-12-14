@@ -21,7 +21,7 @@ begin
     select *
     into v_organization
     from organization
-    where party_id = v_party_id;
+    where party_id = v_party.id;
 
     select email
     into v_email
