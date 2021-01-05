@@ -97,7 +97,79 @@ it('issues credits', () =>
   })
 );
 
-it('issues credits with buffer pool and permanence reversal pool', () => {});
+it('issues credits with buffer pool and permanence reversal pool', () =>
+  withAdminUserDb(async (client, user, party) => {
+    const distribution: Distribution = { projectDeveloper: 0.6, landSteward: 0.4 };
+    const units: number = 1000;
+
+    await becomeRoot(client);
+    const project = await createProject(client, 'project name', party.wallet_id);
+    expect(project).not.toBeNull();
+    // TODO create buffer pool and permanence rev pool users
+    await client.query(
+      `insert into credit_class_version (id, name, version, date_developed, state_machine, metadata)
+      values ($1, 'credit class name', 'v1.0', now(), '{}'::jsonb, $2)`,
+      [project.credit_class_id, { distribution: { bufferPool: 0.2, permanenceReversalBuffer: 0.05 }}]
+    );
+
+    await becomeUser(client, user.auth0_sub);
+    const result = await issueCredits(client, project.id, units, distribution);
+
+    expect(result).not.toBeNull();
+    expect(result.issue_credits).not.toBeNull();
+    expect(result.issue_credits.creditVintageId).not.toBeNull();
+    expect(result.issue_credits.accountBalances).not.toBeNull();
+    expect(result.issue_credits.accountBalances).toHaveLength(2);
+    expect(result.issue_credits.accountBalances[0].name).toEqual('landSteward');
+    expect(result.issue_credits.accountBalances[0].percentage).toEqual(30);
+    expect(result.issue_credits.accountBalances[0].amount).toEqual(300);
+    expect(result.issue_credits.accountBalances[1].name).toEqual('projectDeveloper');
+    expect(result.issue_credits.accountBalances[1].percentage).toEqual(45);
+    expect(result.issue_credits.accountBalances[1].amount).toEqual(450);
+
+    // credit vintage created
+    const { rows: vintages } = await client.query(
+      'select * from credit_vintage where id=$1',
+      [result.issue_credits.creditVintageId]
+    );
+
+    expect(vintages).toHaveLength(1);
+    expect(vintages[0].credit_class_id).toEqual(project.credit_class_id);
+    expect(vintages[0].project_id).toEqual(project.id);
+    expect(vintages[0].issuer_id).toEqual(party.wallet_id);
+    expect(parseInt(vintages[0].units)).toEqual(units);
+    expect(vintages[0].initial_distribution).toEqual(distribution);
+
+    // account balances created
+    const { rows: balances } = await client.query(
+      'select * from account_balance where credit_vintage_id=$1',
+      [result.issue_credits.creditVintageId]
+    );
+
+    expect(balances).toHaveLength(4);
+    const { rows: devParties } = await client.query(
+      'select wallet_id from party where id=$1',
+      [project.developer_id]
+    );
+    expect(devParties).toHaveLength(1);
+    expect(devParties[0]).not.toBeNull();
+    expect(devParties[0].wallet_id).not.toBeNull();
+    expect(balances[0].wallet_id).toEqual(devParties[0].wallet_id);
+    expect(parseFloat(balances[0].liquid_balance)).toEqual(450);
+    expect(parseFloat(balances[0].burnt_balance)).toEqual(0);
+
+    const { rows: stewardParties } = await client.query(
+      'select wallet_id from party where id=$1',
+      [project.steward_id]
+    );
+    expect(stewardParties).toHaveLength(1);
+    expect(stewardParties[0]).not.toBeNull();
+    expect(stewardParties[0].wallet_id).not.toBeNull();
+    expect(balances[1].wallet_id).toEqual(stewardParties[0].wallet_id);
+    expect(parseFloat(balances[1].liquid_balance)).toEqual(300);
+    expect(parseFloat(balances[1].burnt_balance)).toEqual(0);
+  })
+);
 
 it('fails if sum of initial distribution not equal to 100%', () =>
   withAdminUserDb(async (client, user, party) => {
