@@ -20,7 +20,7 @@ async function transferCredits(
       select * from public.transfer_credits(
         $1, $2, $3, $4, $5, $6, uuid_nil(), '', 'offline'::purchase_type, 'USD', '', $7, '', '', false
       )
-      `,
+    `,
     [vintageId, buyerWalletId, addressId, units, creditPrice, txState, autoRetire],
   );
   return row;
