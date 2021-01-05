@@ -8,7 +8,7 @@ type Distribution = {
   landSteward?: number;
 };
 
-async function issueCredits(
+export async function issueCredits(
   client: PoolClient,
   projectId: string | null,
   units: number | null,
@@ -68,7 +68,7 @@ it('issues credits', () =>
 
     // account balances created
     const { rows: balances } = await client.query(
-      'select * from account_balance where credit_vintage_id=$1',
+      'select * from account_balance where credit_vintage_id=$1 ORDER BY liquid_balance DESC',
       [result.issue_credits.creditVintageId]
     );
 
@@ -155,11 +155,12 @@ it('issues credits with buffer pool and permanence reversal pool', () =>
 
     // account balances created
     const { rows: balances } = await client.query(
-      'select * from account_balance where credit_vintage_id=$1',
+      'select * from account_balance where credit_vintage_id=$1 ORDER BY liquid_balance DESC',
       [result.issue_credits.creditVintageId]
     );
 
     expect(balances).toHaveLength(4);
+
     const { rows: devParties } = await client.query(
       'select wallet_id from party where id=$1',
       [project.developer_id]
@@ -182,17 +183,6 @@ it('issues credits with buffer pool and permanence reversal pool', () =>
     expect(parseFloat(balances[1].liquid_balance)).toEqual(300);
     expect(parseFloat(balances[1].burnt_balance)).toEqual(0);
 
-    const { rows: permanenceParties } = await client.query(
-      `select wallet_id from party
-      inner join "user" on "user".email = 'permanence-registry@regen.network'
-      where party.id = "user".party_id`
-    );
-    expect(permanenceParties).toHaveLength(1);
-    expect(permanenceParties[0]).not.toBeNull();
-    expect(permanenceParties[0].wallet_id).not.toBeNull();
-    expect(balances[2].wallet_id).toEqual(permanenceParties[0].wallet_id);
-    expect(parseFloat(balances[2].liquid_balance)).toEqual(50);
-    expect(parseFloat(balances[2].burnt_balance)).toEqual(0);
 
     const { rows: bufferParties } = await client.query(
       `select wallet_id from party
@@ -202,9 +192,23 @@ it('issues credits with buffer pool and permanence reversal pool', () =>
     expect(bufferParties).toHaveLength(1);
     expect(bufferParties[0]).not.toBeNull();
     expect(bufferParties[0].wallet_id).not.toBeNull();
-    expect(balances[3].wallet_id).toEqual(bufferParties[0].wallet_id);
-    expect(parseFloat(balances[3].liquid_balance)).toEqual(200);
+    expect(balances[2].wallet_id).toEqual(bufferParties[0].wallet_id);
+    expect(parseFloat(balances[2].liquid_balance)).toEqual(200);
+    expect(parseFloat(balances[2].burnt_balance)).toEqual(0);
+
+    const { rows: permanenceParties } = await client.query(
+      `select wallet_id from party
+      inner join "user" on "user".email = 'permanence-registry@regen.network'
+      where party.id = "user".party_id`
+    );
+    expect(permanenceParties).toHaveLength(1);
+    expect(permanenceParties[0]).not.toBeNull();
+    expect(permanenceParties[0].wallet_id).not.toBeNull();
+    expect(balances[3].wallet_id).toEqual(permanenceParties[0].wallet_id);
+    expect(parseFloat(balances[3].liquid_balance)).toEqual(50);
     expect(parseFloat(balances[3].burnt_balance)).toEqual(0);
+
+
   })
 );
 

@@ -4,7 +4,7 @@ create or replace function transfer_credits(
   address_id uuid,
   units numeric,
   credit_price numeric,
-  tx_state transaction_state,
+  tx_state transaction_state, -- TODO remove, not really needed
   broker_id uuid default uuid_nil(),
   stripe_id text default '',
   p_type purchase_type default 'offline'::purchase_type,

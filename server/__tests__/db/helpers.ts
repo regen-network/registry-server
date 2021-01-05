@@ -73,8 +73,17 @@ export const becomeUser = async (
   );
 };
 
+export type Party = {
+  wallet_id: string;
+};
+
+export type User = {
+  auth0_sub: string;
+  id: string;
+};
+
 export const withAdminUserDb = <T>(
-  fn: (client: PoolClient, user: { auth0_sub: string; id: string; }, party: { wallet_id: string; }) => Promise<T>
+  fn: (client: PoolClient, user: User, party: Party) => Promise<T>
 ) =>
   withRootDb(async (client) => {
     const sub: string = 'test-admin-sub';
