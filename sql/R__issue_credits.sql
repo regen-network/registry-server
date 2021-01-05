@@ -4,7 +4,6 @@ create or replace function get_user_first_organization(
 declare
   v_organization organization;
 begin
-  raise notice 'current user: %', public.get_current_user();
   select organization.*
   into v_organization
   from organization
@@ -51,10 +50,6 @@ begin
 
   if v_issuer.id is null then
     raise exception 'User not found' using errcode = 'NTFND';
-  end if;
-
-  if v_issuer.is_admin is false then
-    raise exception 'Only admin users can issue credits' using errcode = 'DNIED';
   end if;
 
   -- find org the current user is member of (take first one for now as it'll always be Regen Network)

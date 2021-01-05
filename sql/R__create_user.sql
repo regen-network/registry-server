@@ -124,12 +124,16 @@ begin
       update "user" set auth0_sub = sub
       where id = v_db_user.id
       returning * into v_user;
+
+      -- Insert admin if applicable
+      if email like '%@regen.network' and sub is not null then
+        insert into admin (auth0_sub) values (sub);
+      end if;
     else
       v_user := v_db_user;
     end if;
   else
     -- if no user yet with this auth0 sub, create it with default wallet
-
     if v_auth_user_id is null then
       select *
       into v_user
