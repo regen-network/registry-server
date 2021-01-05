@@ -13,7 +13,7 @@ of NodeJS for this project.
 ### Starting PostgreSQL Locally
 
 1. Install [docker-compose](https://docs.docker.com/compose/install/)
-2. Run `docker-compose up`
+2. Run `cd server && docker-compose up`
 
 ### Environement variables
 
@@ -38,6 +38,9 @@ yarn migrate
 ```sh
 yarn test
 ```
+
+Right now, it's using the development database.
+TODO: Use a separate testing database instead and set up new migration command.
 
 
 
