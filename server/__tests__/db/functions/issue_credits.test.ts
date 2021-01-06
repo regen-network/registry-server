@@ -105,19 +105,7 @@ it('issues credits with buffer pool and permanence reversal pool', () =>
     await becomeRoot(client);
     const project = await createProject(client, 'project name', party.wallet_id);
     expect(project).not.toBeNull();
-    await client.query(
-      `select really_create_user_if_needed('permanence-registry@regen.network',
-      'Permanence Reversal Buffer', null, null, '{"administrative", "buyer"}', '{}'::jsonb, 'permanence', false)`
-    );
-    await client.query(
-      `select really_create_user_if_needed('bufferpool-registry@regen.network',
-      'Buffer Pool', null, null, '{"administrative", "buyer"}', '{}'::jsonb, 'bufferpool', false)`
-    );
-    await client.query(
-      `insert into credit_class_version (id, name, version, date_developed, state_machine, metadata)
-      values ($1, 'credit class name', 'v1.0', now(), '{}'::jsonb, $2)`,
-      [project.credit_class_id, { distribution: { bufferPool: 0.2, permanenceReversalBuffer: 0.05 }}]
-    );
+    await setupPools(client, project.credit_class_id);
 
     await becomeUser(client, user.auth0_sub);
     const result = await issueCredits(client, project.id, units, distribution);
@@ -183,7 +171,6 @@ it('issues credits with buffer pool and permanence reversal pool', () =>
     expect(parseFloat(balances[1].liquid_balance)).toEqual(300);
     expect(parseFloat(balances[1].burnt_balance)).toEqual(0);
 
-
     const { rows: bufferParties } = await client.query(
       `select wallet_id from party
       inner join "user" on "user".email = 'bufferpool-registry@regen.network'
@@ -207,8 +194,6 @@ it('issues credits with buffer pool and permanence reversal pool', () =>
     expect(balances[3].wallet_id).toEqual(permanenceParties[0].wallet_id);
     expect(parseFloat(balances[3].liquid_balance)).toEqual(50);
     expect(parseFloat(balances[3].burnt_balance)).toEqual(0);
-
-
   })
 );
 
@@ -310,5 +295,22 @@ it('fails if current user is not credit class issuer', () =>
       `[error: User not allowed to issue credits for this project]`
     );
     await expect(promise).rejects.toHaveProperty('code', 'DNIED');
-  }));
+  })
+);
+
+export async function setupPools(client: PoolClient, creditClassId: string) {
+    await client.query(
+      `select really_create_user_if_needed('permanence-registry@regen.network',
+      'Permanence Reversal Buffer', null, null, '{"administrative", "buyer"}', '{}'::jsonb, 'permanence', false)`
+    );
+    await client.query(
+      `select really_create_user_if_needed('bufferpool-registry@regen.network',
+      'Buffer Pool', null, null, '{"administrative", "buyer"}', '{}'::jsonb, 'bufferpool', false)`
+    );
+    await client.query(
+      `insert into credit_class_version (id, name, version, date_developed, state_machine, metadata)
+      values ($1, 'credit class name', 'v1.0', now(), '{}'::jsonb, $2)`,
+      [creditClassId, { distribution: { bufferPool: 0.2, permanenceReversalBuffer: 0.05 }}]
+    );
+}
 
