@@ -1,4 +1,4 @@
-# Getting Started
+# Registry Server
 
 ## Prerequisites
 
@@ -7,6 +7,17 @@ Make sure [NodeJS](https://nodejs.org/en/) v8.9.x, [Yarn](https://yarnpkg.com/en
 [NVM](https://github.com/creationix/nvm) is recommended for managing NodeJS installations and we
 are intending to stick to the [LTS](https://github.com/creationix/nvm#long-term-support) releases
 of NodeJS for this project.
+
+## Setup
+
+### Starting PostgreSQL Locally
+
+1. Install [docker-compose](https://docs.docker.com/compose/install/)
+2. Run `cd server && docker-compose up`
+
+### Environement variables
+
+Based on `server/.env.example`, create some `server/.env` file with appropriate values.
 
 ## Starting a development server
 
@@ -20,4 +31,17 @@ of NodeJS for this project.
 ```sh
 yarn migrate
 ```
+
+## Tests
+
+[Jest](https://jestjs.io/) is used for testing:
+```sh
+yarn test
+```
+
+Right now, it's using the development database.
+TODO: Use a separate testing database instead and set up new migration command.
+
+
+
 

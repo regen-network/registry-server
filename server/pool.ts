@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { main as workerMain } from './worker/worker';
 
 const pgPoolConfig: PoolConfig = {
-  connectionString: process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/xrn',
+  connectionString: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/regen_registry',
 };
 
 if (process.env.NODE_ENV === 'production') {
