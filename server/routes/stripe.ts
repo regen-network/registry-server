@@ -192,7 +192,7 @@ router.post(
                 // Transfer credits
                 try {
                   result = await client.query(
-                    'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12, $13, $14)',
+                    'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12, $13, $14, uuid_nil(), uuid_nil())',
                     [
                       product.metadata.vintage_id,
                       invoice.metadata.wallet_id,
@@ -285,7 +285,7 @@ router.post(
                   // Transfer credits
                   try {
                     result = await client.query(
-                      'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12, $13, $14)',
+                      'SELECT transfer_credits($1, $2, $3, $4, $5, $6, uuid_nil(), $7, $8, $9, $10, $11, $12, $13, $14, uuid_nil(), uuid_nil())',
                       [
                         product.metadata.vintage_id,
                         walletId,
