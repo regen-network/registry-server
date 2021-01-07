@@ -70,11 +70,19 @@ begin
   end if;
 
   -- create new purchase
-  insert into purchase
-    ("stripe_id", type, "buyer_wallet_id", credit_vintage_id, "address_id", "party_id", "user_id")
-  values
-    (stripe_id, p_type, buyer_wallet_id, vintage_id, address_id, party_id, user_id)
-  returning id into v_purchase_id;
+  if party_id = uuid_nil() and user_id = uuid_nil() then
+    insert into purchase
+      ("stripe_id", type, "buyer_wallet_id", credit_vintage_id, "address_id")
+    values
+      (stripe_id, p_type, buyer_wallet_id, vintage_id, address_id)
+    returning id into v_purchase_id;
+  else
+    insert into purchase
+      ("stripe_id", type, "buyer_wallet_id", credit_vintage_id, "address_id", "party_id", "user_id")
+    values
+      (stripe_id, p_type, buyer_wallet_id, vintage_id, address_id, party_id, user_id)
+    returning id into v_purchase_id;
+  end if;
 
   -- update project's stakeholders' account balances and create corresponding transactions
   for v_key, v_value in
