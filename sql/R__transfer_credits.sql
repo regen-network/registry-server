@@ -115,13 +115,20 @@ begin
         where credit_vintage_id = vintage_id and wallet_id = v_from;
 
         if broker_id = uuid_nil() then
-          -- Use party_id as default broker_id for now since RND is doing the transfer and is the broker
-          -- TODO look for broker info at the project level instead
-          -- it might also be more consistent to have broker_id at the purchase (ie transfer) level too
-          insert into transaction
-            (broker_id, from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
-          values
-            (party_id, v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
+          if party_id = uuid_nil() then
+            insert into transaction
+              (from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
+            values
+              (v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
+          else
+            -- Use party_id as default broker_id for now since RND is doing the transfer and is the broker
+            -- TODO look for broker info at the project level instead
+            -- it might also be more consistent to have broker_id at the purchase (ie transfer) level too
+            insert into transaction
+              (broker_id, from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
+            values
+              (party_id, v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
+          end if;
         else
           insert into transaction
             (broker_id, from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
