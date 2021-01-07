@@ -12,16 +12,18 @@ async function transferCredits(
   creditPrice: number | null,
   txState: string | null,
   autoRetire: boolean | null,
+  partyId: string | null,
+  userId: string | null,
 ) {
   const {
     rows: [row],
   } = await client.query(
     `
       select * from public.transfer_credits(
-        $1, $2, $3, $4, $5, $6, uuid_nil(), '', 'offline'::purchase_type, 'USD', '', $7, '', '', false
+        $1, $2, $3, $4, $5, $6, uuid_nil(), '', 'offline'::purchase_type, 'USD', '', $7, '', '', false, $8, $9
       )
     `,
-    [vintageId, buyerWalletId, addressId, units, creditPrice, txState, autoRetire],
+    [vintageId, buyerWalletId, addressId, units, creditPrice, txState, autoRetire, partyId, userId],
   );
   return row;
 }
@@ -33,7 +35,7 @@ it('transfers credits', () =>
     );
 
     const result = await transferCredits(client, vintageId,
-      buyerWalletId, addressId, 100, 1, 'succeeded', false
+      buyerWalletId, addressId, 100, 1, 'succeeded', false, party.id, user.id,
     );
 
     expect(result).not.toBeNull();
@@ -50,6 +52,8 @@ it('transfers credits', () =>
     expect(purchase.buyer_wallet_id).toEqual(buyerWalletId);
     expect(purchase.address_id).toEqual(addressId);
     expect(purchase.credit_vintage_id).toEqual(vintageId);
+    expect(purchase.party_id).toEqual(party.id);
+    expect(purchase.user_id).toEqual(user.id);
 
     // Account balances updated
     const { rows: balances } = await client.query(
@@ -83,6 +87,24 @@ it('transfers credits', () =>
     expect(balances[2].wallet_id).toEqual(buyerWalletId);
     expect(parseFloat(balances[2].liquid_balance)).toEqual(100);
     expect(parseFloat(balances[2].burnt_balance)).toEqual(0);
+
+    // Transactions created
+    const { rows: txs } = await client.query(
+      'select * from transaction where purchase_id=$1 ORDER BY units DESC',
+      [purchase.id]
+    );
+
+    expect(txs).toHaveLength(2);
+    expect(txs[0].from_wallet_id).toEqual(devParties[0].wallet_id);
+    expect(txs[0].to_wallet_id).toEqual(buyerWalletId);
+    expect(parseFloat(txs[0].units)).toEqual(60);
+    expect(txs[0].credit_vintage_id).toEqual(vintageId);
+    expect(txs[0].broker_id).toEqual(party.id);
+    expect(txs[1].from_wallet_id).toEqual(stewardParties[0].wallet_id);
+    expect(txs[1].to_wallet_id).toEqual(buyerWalletId);
+    expect(parseFloat(txs[1].units)).toEqual(40);
+    expect(txs[1].credit_vintage_id).toEqual(vintageId);
+    expect(txs[1].broker_id).toEqual(party.id);
   })
 );
 
@@ -93,7 +115,7 @@ it('transfers credits with buffer pool and permanence reversal pool', () =>
     );
 
     const result = await transferCredits(client, vintageId,
-      buyerWalletId, addressId, 100, 1, 'succeeded', false
+      buyerWalletId, addressId, 100, 1, 'succeeded', false, party.id, user.id,
     );
 
     expect(result).not.toBeNull();
@@ -110,6 +132,8 @@ it('transfers credits with buffer pool and permanence reversal pool', () =>
     expect(purchase.buyer_wallet_id).toEqual(buyerWalletId);
     expect(purchase.address_id).toEqual(addressId);
     expect(purchase.credit_vintage_id).toEqual(vintageId);
+    expect(purchase.party_id).toEqual(party.id);
+    expect(purchase.user_id).toEqual(user.id);
 
     // Account balances updated
     const { rows: balances } = await client.query(
@@ -177,7 +201,7 @@ it('transfers credits and auto-retires', () =>
     );
 
     const result = await transferCredits(client, vintageId,
-      buyerWalletId, addressId, 100, 1, 'succeeded', true,
+      buyerWalletId, addressId, 100, 1, 'succeeded', true, party.id, user.id,
     );
 
     expect(result).not.toBeNull();
@@ -252,7 +276,7 @@ it('fails if current user is not an admin', () =>
     await becomeUser(client, user.auth0_sub);
 
     const promise = transferCredits(client, vintageId,
-      buyerWalletId, addressId, 1001, 1, 'succeeded', true,
+      buyerWalletId, addressId, 1001, 1, 'succeeded', true, party.id, user.id,
     );
     await expect(promise).rejects.toMatchInlineSnapshot(
       `[error: new row violates row-level security policy for table "transaction"]`
@@ -267,7 +291,7 @@ it('fails if not enough credits left', () =>
     );
 
     const promise = transferCredits(client, vintageId,
-      buyerWalletId, addressId, 1001, 1, 'succeeded', true,
+      buyerWalletId, addressId, 1001, 1, 'succeeded', true, party.id, user.id,
     );
 
     await expect(promise).rejects.toMatchInlineSnapshot(
@@ -284,7 +308,7 @@ it('fails if not enough credits left with buffer pool and permanence reversal po
     );
 
     const promise = transferCredits(client, vintageId,
-      buyerWalletId, addressId, 751, 1, 'succeeded', true,
+      buyerWalletId, addressId, 751, 1, 'succeeded', true, party.id, user.id,
     );
 
     await expect(promise).rejects.toMatchInlineSnapshot(
