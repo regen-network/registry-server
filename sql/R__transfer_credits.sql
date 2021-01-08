@@ -13,7 +13,9 @@ create or replace function transfer_credits(
   auto_retire boolean default true,
   buyer_name text default '',
   receipt_url text default '',
-  send_confirmation boolean default true
+  send_confirmation boolean default true,
+  party_id uuid default uuid_nil(),
+  user_id uuid default uuid_nil()
 ) returns jsonb as $$
 declare
   v_user "user";
@@ -68,11 +70,19 @@ begin
   end if;
 
   -- create new purchase
-  insert into purchase
-    ("stripe_id", type, "buyer_wallet_id", credit_vintage_id, "address_id")
-  values
-    (stripe_id, p_type, buyer_wallet_id, vintage_id, address_id)
-  returning id into v_purchase_id;
+  if party_id = uuid_nil() and user_id = uuid_nil() then
+    insert into purchase
+      ("stripe_id", type, "buyer_wallet_id", credit_vintage_id, "address_id")
+    values
+      (stripe_id, p_type, buyer_wallet_id, vintage_id, address_id)
+    returning id into v_purchase_id;
+  else
+    insert into purchase
+      ("stripe_id", type, "buyer_wallet_id", credit_vintage_id, "address_id", "party_id", "user_id")
+    values
+      (stripe_id, p_type, buyer_wallet_id, vintage_id, address_id, party_id, user_id)
+    returning id into v_purchase_id;
+  end if;
 
   -- update project's stakeholders' account balances and create corresponding transactions
   for v_key, v_value in
@@ -105,10 +115,20 @@ begin
         where credit_vintage_id = vintage_id and wallet_id = v_from;
 
         if broker_id = uuid_nil() then
-          insert into transaction
-            (from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
-          values
-            (v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
+          if party_id = uuid_nil() then
+            insert into transaction
+              (from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
+            values
+              (v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
+          else
+            -- Use party_id as default broker_id for now since RND is doing the transfer and is the broker
+            -- TODO look for broker info at the project level instead
+            -- it might also be more consistent to have broker_id at the purchase (ie transfer) level too
+            insert into transaction
+              (broker_id, from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
+            values
+              (party_id, v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
+          end if;
         else
           insert into transaction
             (broker_id, from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)

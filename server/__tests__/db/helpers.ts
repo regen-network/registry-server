@@ -75,6 +75,7 @@ export const becomeUser = async (
 
 export type Party = {
   wallet_id: string;
+  id: string;
 };
 
 export type User = {

@@ -2,6 +2,10 @@ import { Pool, Client, PoolConfig } from 'pg';
 import * as fs from 'fs';
 import { main as workerMain } from './worker/worker';
 
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 const pgPoolConfig: PoolConfig = {
   connectionString: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/regen_registry',
 };
