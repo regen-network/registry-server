@@ -13,7 +13,7 @@ create or replace function transfer_credits(
   auto_retire boolean default true,
   buyer_name text default '',
   receipt_url text default '',
-  send_confirmation boolean default true,
+  send_confirmation boolean default false,
   party_id uuid default uuid_nil(),
   user_id uuid default uuid_nil()
 ) returns jsonb as $$
