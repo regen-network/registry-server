@@ -2,6 +2,13 @@ import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as Airtable from 'airtable';
 
+const { runnerPromise } = require('../pool');
+
+let runner;
+runnerPromise.then((res) => {
+  runner = res;
+});
+
 const router = express.Router();
 const airtable = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY });
 const airtableContactBase = airtable.base(process.env.AIRTABLE_CONTACT_BASE);
@@ -24,8 +31,23 @@ router.post('/contact', bodyParser.json(), (req, res: express.Response) => {
       if (err) {
         console.error(err);
         res.status(400).send(err);
+      } else {
+        if (runner) {
+          runner.addJob('send_email', { 
+            options: {
+              to: requestType,
+              subject: 'New contact submission',
+              text: `Name: ${name}\n\nEmail address: ${email}\n\nOrganisation: ${orgName}\n\nMessage: ${message}`
+            }
+          }).then(() => {
+            res.sendStatus(200);
+          }, (err) => {
+            res.status(400).send(err);
+          });
+        } else {
+          res.sendStatus(200);
+        }
       }
-      res.sendStatus(200);
     }
   );
 });
