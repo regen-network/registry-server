@@ -15,9 +15,9 @@ of NodeJS for this project.
 1. Install [docker-compose](https://docs.docker.com/compose/install/)
 2. Run `cd server && docker-compose up`
 
-### Environement variables
+### Environment variables
 
-Based on `server/.env.example`, create some `server/.env` file with appropriate values.
+Based on `.env.example`, create some `.env` file with appropriate values.
 
 ## Starting a development server
 
