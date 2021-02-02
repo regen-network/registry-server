@@ -6,6 +6,8 @@ import * as fileUpload from 'express-fileupload';
 import * as cors from 'cors';
 import { release } from 'os';
 import * as bodyParser from 'body-parser';
+import { createProxyMiddleware, Filter, Options, RequestHandler } from 'http-proxy-middleware';
+
 import { UserRequest, UserIncomingMessage } from './types';
 import getJwt from './middleware/jwt';
 
@@ -78,6 +80,11 @@ app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Respon
     res.sendStatus(200);
   }
 });
+
+app.use('/ledger', createProxyMiddleware({
+  target: process.env.LEDGER_TENDERMINT_RPC || 'http://13.59.81.92:26657/',
+  pathRewrite: { '^/ledger': '/'},
+}));
 
 app.use(postgraphile(pgPool, 'public', {
   graphiql: true,
