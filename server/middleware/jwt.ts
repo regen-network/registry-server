@@ -7,11 +7,11 @@ export default function getJwt(credentialsRequired: boolean): jwt.RequestHandler
       cache: true,
       rateLimit: true,
       jwksRequestsPerMinute: 5,
-      jwksUri: 'https://regen-network-registry.auth0.com/.well-known/jwks.json'
+      jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`
     }),
     credentialsRequired,
     audience: 'https://regen-registry-server.herokuapp.com/',
-    issuer: 'https://regen-network-registry.auth0.com/',
+    issuer: `https://${process.env.AUTH0_DOMAIN}/`,
     algorithms: ['RS256']
   });
 }

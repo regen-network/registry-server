@@ -5,7 +5,7 @@ create or replace function public.really_create_user_if_needed(
   auth0_sub text,
   roles text[] default null,
   address jsonb default null,
-  wallet_addr bytea default null,
+  wallet_addr text default null,
   updates boolean default false
 ) returns "user" as $$
 declare
@@ -32,7 +32,7 @@ create or replace function public.really_create_user(
   auth0_sub text,
   roles text[] default null,
   address jsonb default null,
-  wallet_addr bytea default null,
+  wallet_addr text default null,
   updates boolean default false
 ) returns "user" as $$
 declare
@@ -137,7 +137,7 @@ begin
     if v_auth_user_id is null then
       select *
       into v_user
-      from public.really_create_user(email, name, avatar, sub, roles, null, name::bytea, false);
+      from public.really_create_user(email, name, avatar, sub, roles, null, name, false);
     end if;
   end if;
 

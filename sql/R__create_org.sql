@@ -1,7 +1,7 @@
 create or replace function public.really_create_organization_if_needed
 (
   org_name text,
-  wallet_addr bytea,
+  wallet_addr text,
   owner_id uuid,
   roles text[] default null,
   org_address jsonb default null
@@ -32,7 +32,7 @@ to pg_catalog, public, pg_temp;
 
 create or replace function public.really_create_organization(
   name text,
-  wallet_addr bytea,
+  wallet_addr text,
   owner_id uuid,
   roles text[] default null,
   org_address jsonb default null
