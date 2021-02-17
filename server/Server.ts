@@ -8,7 +8,7 @@ import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { createProxyMiddleware, Filter, Options, RequestHandler } from 'http-proxy-middleware';
 
-import { UserRequest, UserIncomingMessage } from './types';
+import { UserIncomingMessage } from './types';
 import getJwt from './middleware/jwt';
 
 const url = require('url');
@@ -46,41 +46,6 @@ app.use(cors(corsOptions));
 
 app.use(getJwt(false));
 
-app.post('/api/login', bodyParser.json(), (req: UserRequest, res: express.Response) => {
-  // Create Postgres ROLE for Auth0 user
-  if(req.user && req.user.sub) {
-    const sub = req.user.sub;
-    pgPool.connect((err, client, release) => {
-      if (err) {
-        res.sendStatus(500);
-        console.error('Error acquiring postgres client', err.stack);
-      } else {
-        client.query('SELECT private.create_app_user_if_needed($1)', [sub], (err, qres) => {
-          if (err) {
-            res.sendStatus(500);
-            console.error('Error creating role', err.stack);
-          } else {
-            // create user and associated party if needed
-            client.query('SELECT private.really_create_user_if_needed($1, $2, $3, $4, NULL)',
-              [req.body.email, req.body.nickname, req.body.picture, sub],
-              (err, qres) => {
-                release();
-                if (err) {
-                  res.sendStatus(500);
-                  console.error('Error creating user', err.stack);
-                } else {
-                  res.sendStatus(200);
-                }
-            });
-          }
-        });
-      }
-    });
-  } else {
-    res.sendStatus(200);
-  }
-});
-
 app.use('/ledger', createProxyMiddleware({
   target: process.env.LEDGER_TENDERMINT_RPC || 'http://13.59.81.92:26657/',
   pathRewrite: { '^/ledger': '/'},
@@ -108,6 +73,7 @@ app.use(require('./routes/mailerlite'));
 app.use(require('./routes/contact'));
 app.use(require('./routes/buyers-info'));
 app.use(require('./routes/stripe'));
+app.use(require('./routes/auth'));
 
 const port = process.env.PORT || 5000;
 

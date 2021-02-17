@@ -6,9 +6,9 @@ interface User {
 }
 
 export interface UserRequest extends Request {
-  user: User;
+  user?: User;
 }
 
 export interface UserIncomingMessage extends IncomingMessage {
-  user: User;
+  user?: User;
 }

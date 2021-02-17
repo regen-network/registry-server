@@ -4,7 +4,7 @@ create or replace function public.create_user_organization_if_needed
   name text,
   avatar text,
   org_name text,
-  wallet_addr bytea,
+  wallet_addr text,
   roles text[] default null,
   org_address jsonb default null,
   updates boolean default false
@@ -14,7 +14,7 @@ declare
   v_org organization;
 begin
   v_user := public.really_create_user_if_needed
-(email, name, avatar, null, roles, null, name::bytea, updates);
+(email, name, avatar, null, roles, null, name, updates);
   v_org := public.really_create_organization_if_needed
 (org_name, wallet_addr, v_user.id, roles, org_address);
 
@@ -29,7 +29,7 @@ create or replace function public.create_user_organization(
   name text,
   avatar text,
   org_name text,
-  wallet_addr bytea,
+  wallet_addr text,
   roles text[] default null,
   org_address jsonb default null
 ) returns organization as $$

@@ -12,6 +12,7 @@
     "@types/nodemailer": "^6.4.0",
     "@types/pg": "^7.14.3",
     "airtable": "^0.8.1",
+    "auth0": "^2.33.0",
     "aws-sdk": "^2.677.0",
     "body-parser": "^1.19.0",
     "cors": "2.8.5",
