@@ -1,0 +1,309 @@
+//// -- Tables and References
+
+// Creating tables
+Table party {
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp
+  type party_type [not null] //[note: 'unique(id, type)'] 
+  name text [not null]
+  roles text[]
+  address_id uuid [ref: - address.id]
+  wallet_id uuid [ref: - wallet.id]
+  // metadata jsonb
+  Indexes {
+    (id, type) [unique]
+  }
+}
+
+Table address {
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp
+  feature jsonb [not null]
+}
+
+Table retirement {
+  id uuid [pk]
+  created_at timestamp [not null]
+  wallet_id uuid [not null, ref: > wallet.id]
+  address_id uuid [ref: > address.id]
+  credit_vintage_id uuid [not null, ref: > credit_vintage.id]
+  units numeric [not null]
+}
+
+Table purchase {
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp
+  stripe_id text
+  type purchase_type [not null]
+  buyer_wallet_id uuid [not null, ref: > wallet.id]
+  address_id uuid [ref: > address.id]
+  party_id uuid [ref: > party.id]
+  user_id uuid [ref: > user.id]
+  credit_vintage_id uuid [not null, ref: > credit_vintage.id]
+}
+
+Table transaction {
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp
+  broker_id uuid [ref: > party.id]
+  from_wallet_id uuid [not null, ref: > wallet.id]
+  to_wallet_id uuid [not null, ref: > wallet.id]
+  //type transaction_type [not null]
+  state transaction_state [not null]
+  units numeric [not null]
+  credit_price numeric [not null]
+  credit_vintage_id uuid [not null, ref: > credit_vintage.id]
+  purchase_id uuid [not null, ref: < purchase.id]
+}
+
+Table wallet {
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp
+  addr text [not null]
+}
+
+Table account_balance {
+  id uuid [pk]
+  credit_vintage_id uuid [ref: - credit_vintage.id]
+  wallet_id uuid [ref: - wallet.id] // link to ledger addr
+  liquid_balance numeric
+  burnt_balance numeric // retired
+}
+
+Table user as U {
+  id uuid [pk]
+  party_id uuid [ref: - party.id, unique]
+  created_at timestamp [not null]
+  updated_at timestamp
+  type party_type [ref: - party.type, note: 'check (type = "user")', not null]
+  email citext [not null]
+  avatar text
+  auth0_sub text
+  // is_admin boolean TODO remove
+  updates boolean
+  stripe_account_id text
+}
+
+Table organization {
+  id uuid [pk]
+  party_id uuid [ref: - party.id, unique]
+  created_at timestamp [not null]
+  updated_at timestamp
+  type party_type [ref: - party.type, note: 'check (type = "organization")', not null]
+  logo text
+  website text
+  description text
+}
+
+Table organization_member {
+  created_at timestamp [not null]
+  updated_at timestamp
+  member_id uuid [ref: > user.id]
+  organization_id uuid [ref: > organization.id]
+  roles text[]
+}
+
+Table methodology {
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp
+  author_id uuid [ref: > party.id, not null]
+}
+
+Table methodology_version {
+  id uuid [not null]
+  created_at timestamp [not null]
+  name text [not null]
+  version text [not null]
+  date_developed timestamp [not null]
+  description text
+  boundary geometry [not null]
+  _eco_regions jsonb
+  _practices jsonb
+  _outcomes_measured jsonb
+  metadata jsonb [note: 'eco-regions, practices/outcomes measures...']
+  files jsonb
+}
+
+Table credit_class {
+  id uuid [pk]
+  handle text [unique]
+  created_at timestamp [not null]
+  updated_at timestamp
+  designer_id uuid [ref: > party.id]
+  methodology_id uuid [ref: - methodology.id, not null]
+}
+
+Table credit_class_version {
+  id uuid [not null]
+  created_at timestamp [not null]
+  name text [not null]
+  version text [not null]
+  date_developed timestamp [not null]
+  description text
+  state_machine jsonb [not null]
+  metadata jsonb [note: 'eco metrics, price, program guide name/version']
+}
+
+// Issuer allowed to issue credits for certain credit_class
+Table credit_class_issuer {
+  created_at timestamp [not null]
+  updated_at timestamp
+  credit_class_id uuid [ref: > credit_class.id]
+  issuer_id uuid [ref: > wallet.id]
+}
+
+/// Batch of credits issued for a project
+Table credit_vintage {
+  id uuid [pk]
+  created_at timestamp [not null]
+  start_date timestamp
+  end_end timestamp
+  // updated_at timestamp
+  credit_class_id uuid [ref: > credit_class.id]
+  project_id uuid [ref: - project.id]
+  event_id uuid [ref: - event.id, unique]
+  issuer_id uuid [ref: > wallet.id]
+  // not relevant, state text [not null]
+  units numeric
+  initial_distribution jsonb [note: 'breakdown of ownership of credits']
+  certificate_link text
+}
+
+Table project {
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp
+  handle text [unique]
+  
+  // only one of the three below is required
+  developer_id uuid [ref: > party.id]
+  steward_id uuid [ref: > party.id]
+  land_owner_id uuid [ref: > party.id, note: 'constraint check_project check (developer_id is not null or land_owner_id is not null or steward_id is not null)']
+  
+  credit_class_id uuid [ref: - credit_class.id, not null]
+  credit_class_version_id uuid
+  credit_class_version_created_at timestamp
+  methodology_version_id uuid
+  methodology_version_created_at timestamp
+  name text [not null]
+  location geometry [not null]
+  application_date timestamp [not null]
+  start_date timestamp [not null]
+  end_date timestamp [not null]
+  summary_description char(160) [not null]
+  long_description text [not null]
+  photos text[] [not null]
+  documents jsonb
+  area integer [not null]
+  area_unit char(10) [not null]
+  state project_state [not null]
+  last_event_index integer
+  _land_mgmt_actions jsonb
+  _key_activities jsonb
+  _protected_species jsonb
+  impact jsonb
+  metadata jsonb [note: 'land mgmt actions, key activities/outcomes, protected species...']
+  registry_id uuid [ref: > registry.id]
+}
+
+Table project_broker {
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp
+  project_id uuid [ref: > project.id]
+  broker_id uuid [ref: > party.id]
+  authorized_by_party_id uuid [ref: > party.id]
+  signer_id uuid [ref: > user.id]
+}
+
+// TODO
+Table mrv { // see VCS
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp
+  project_id uuid [ref: > project.id]
+}
+
+Table registry {
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp
+  name text [not null]
+}
+
+Table event {
+  id uuid [pk]
+  created_at timestamp [not null]
+  updated_at timestamp
+  project_id uuid [ref: > project.id, not null]
+  date timestamp
+  summary char(160) [not null]
+  description text
+  from_state project_state
+  to_state project_state
+}
+
+Table admin {
+  id uuid [pk]
+  auth0_sub text [not null]
+}
+
+
+// Creating references
+// You can also define relaionship separately
+// > many-to-one; < one-to-many; - one-to-one
+// Ref: U.country_code > countries.code
+
+// Composite foreign keys
+Ref: project.(credit_class_version_id, credit_class_version_created_at) > credit_class_version.(id, created_at)
+Ref: project.(methodology_version_id, methodology_version_created_at) > methodology_version.(id, created_at)
+
+//----------------------------------------------//
+
+//// -- Enum, Indexes
+
+Enum party_type {
+  user
+  organization
+}
+
+Enum transaction_type {
+  transfer
+  retire
+}
+
+Enum transaction_state {
+  hold
+  processing
+  succeeded
+  payment_failed
+  revoked
+}
+
+//Enum credit_state {
+//  buffer
+//  hold
+//  cancelled
+//  issued
+//  retired
+//}
+
+Enum project_state {
+  proposed
+  pending_approval
+  active
+  hold
+  ended
+}
+
+Enum purchase_type {
+  stripe_invoice
+  stripe_checkout
+  offline
+}
