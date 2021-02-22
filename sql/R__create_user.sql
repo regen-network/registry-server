@@ -72,15 +72,10 @@ begin
 
   -- Insert the new user
   insert into "user"
-    (email, avatar, auth0_sub, party_id, is_admin, updates)
+    (email, avatar, auth0_sub, party_id, updates)
   values
-    (email, avatar, auth0_sub, v_party.id, email like '%@regen.network', updates)
+    (email, avatar, auth0_sub, v_party.id, updates)
   returning * into v_user;
-
-  -- Insert admin if applicable
-  if email like '%@regen.network' and auth0_sub is not null then
-    insert into admin (auth0_sub) values (auth0_sub);
-  end if;
 
   -- Refresh the user
   select *
@@ -124,11 +119,6 @@ begin
       update "user" set auth0_sub = sub
       where id = v_db_user.id
       returning * into v_user;
-
-      -- Insert admin if applicable
-      if email like '%@regen.network' and sub is not null then
-        insert into admin (auth0_sub) values (sub);
-      end if;
     else
       v_user := v_db_user;
     end if;
