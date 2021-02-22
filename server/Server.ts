@@ -20,7 +20,8 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const REGEN_HOSTNAME_PATTERN = /regen\.network$/;
-const NETLIFY_DEPLOY_PREVIEW_HOSTNAME_PATTERN = /deploy-preview-\d+--regen-website\.netlify\.app$/;
+const WEBSITE_PREVIEW_HOSTNAME_PATTERN = /deploy-preview-\d+--regen-website\.netlify\.app$/;
+const REGISTRY_PREVIEW_HOSTNAME_PATTERN = /deploy-preview-\d+--regen-registry\.netlify\.app$/;
 
 const corsOptions = (req, callback) => {
   let options;
@@ -29,7 +30,8 @@ const corsOptions = (req, callback) => {
   } else {
     const originURL = req.header('Origin') && url.parse(req.header('Origin'));
     if (originURL && (originURL.hostname.match(REGEN_HOSTNAME_PATTERN) ||
-      originURL.hostname.match(NETLIFY_DEPLOY_PREVIEW_HOSTNAME_PATTERN))) {
+      originURL.hostname.match(WEBSITE_PREVIEW_HOSTNAME_PATTERN) ||
+      originURL.hostname.match(REGISTRY_PREVIEW_HOSTNAME_PATTERN))) {
       options = { origin: true }; // reflect (enable) the requested origin in the CORS response
     } else {
       options = { origin: false }; // disable CORS for this request
