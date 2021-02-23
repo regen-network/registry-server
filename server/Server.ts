@@ -76,6 +76,7 @@ app.use(require('./routes/contact'));
 app.use(require('./routes/buyers-info'));
 app.use(require('./routes/stripe'));
 app.use(require('./routes/auth'));
+app.use(require('./routes/recaptcha'));
 
 const port = process.env.PORT || 5000;
 
