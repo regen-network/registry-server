@@ -20,6 +20,7 @@ router.post('/recaptcha/verify', bodyParser.json(), async (request, response: ex
     })
     .catch(error => {
       console.error(error)
+      response.status(500).send(error);
     })
 
 });
