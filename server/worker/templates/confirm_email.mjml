@@ -61,7 +61,7 @@
         border-bottom-right-radius: 5px;
       }
       .connect {
-        font-family: Muli, sans-serif;
+        font-family: Muli, Lato, sans-serif;
         font-weight: 800;
         letter-spacing: 1px;
         text-transform: uppercase;
@@ -79,7 +79,7 @@
     
     <mj-attributes>
       <mj-class name="background" background-color="#f9f9f9" font-size="13px" />
-      <mj-class name="muli-text" font-family="Muli,sans-serif" font-weight="900" padding-left="0px" padding-right="0px" />
+      <mj-class name="muli-text" font-family="Muli,Lato,sans-serif" font-weight="900" padding-left="0px" padding-right="0px" />
       <mj-class name="grey-text" padding-left="0px" padding-right="0px" align="center" color="#545555" font-family="Lato,sans-serif" />
       <mj-class name="light-grey-text" padding-left="0px" padding-right="0px" align="center" color="#8F8F8F" font-family="Lato,sans-serif" />
       <mj-class name="black-text" padding-left="0px" padding-right="0px" align="center" color="#000" font-family="Lato,sans-serif" />
@@ -147,10 +147,6 @@
       <mj-column>
         <mj-image width="87px" src="https://regen-registry.s3.amazonaws.com/Black.png" />
         <mj-text mj-class="grey-text">
-          <a class="bottom-link" style="text-decoration: none; color: #545555;" href="mailto:hello@regen.network">hello@regen.network</a>
-          &nbsp;
-          <span class="bottom-link" style="color: #4FB573">·</span>
-          &nbsp;
           <a class="bottom-link" style="text-decoration: none; color: #545555;" href="https://www.regen.network/">www.regen.network</a>
         </mj-text>
       </mj-column>
