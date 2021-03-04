@@ -40,7 +40,7 @@ begin
   v_user := public.really_create_user
     (email, name, avatar, null, roles, null, null, false);
   v_org := public.really_create_organization
-    (org_name, wallet_addr, v_user.id, roles, org_address);
+    (org_name, wallet_addr, v_user.id, roles, org_address);-- TODO: (adding comment so it shows in diff - remove after clarified) Does this function need to be updated to reflect changes to `public.really_create_organization? (adding legal name) Two arguments (legal_name and logo) aren't nullable, so i'm not sure how i'd fill them in here
 
   return v_org;
 end;

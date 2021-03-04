@@ -25,6 +25,8 @@ begin
 end;
 $$ language plpgsql volatile set search_path to pg_catalog, public, pg_temp;
 
+drop function if exists public.really_create_user;
+
 create or replace function public.really_create_user(
   email text,
   name text,
@@ -33,7 +35,9 @@ create or replace function public.really_create_user(
   roles text[] default null,
   address jsonb default null,
   wallet_addr text default null,
-  updates boolean default false
+  updates boolean default false,
+  description text default null,
+  phone_number text default null
 ) returns "user" as $$
 declare
   v_user "user";

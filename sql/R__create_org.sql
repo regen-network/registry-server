@@ -34,6 +34,8 @@ create or replace function public.really_create_organization(
   name text,
   wallet_addr text,
   owner_id uuid,
+  legal_name text,
+  logo text,
   roles text[] default null,
   org_address jsonb default null
 ) returns organization as $$
