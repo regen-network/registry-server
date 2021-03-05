@@ -7,6 +7,8 @@ import * as cors from 'cors';
 import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { createProxyMiddleware, Filter, Options, RequestHandler } from 'http-proxy-middleware';
+import { expressSharp, FsAdapter, HttpAdapter } from 'express-sharp'
+import { S3Adapter } from 'express-sharp'
 
 import { UserIncomingMessage } from './types';
 import getJwt from './middleware/jwt';
@@ -25,6 +27,7 @@ const REGISTRY_PREVIEW_HOSTNAME_PATTERN = /deploy-preview-\d+--regen-registry\.n
 
 const corsOptions = (req, callback) => {
   let options;
+  if (req.method == 'GET') console.log('corsOptions req', req)
   if (process.env.NODE_ENV !== 'production') {
     options = { origin: true };
   } else {
@@ -71,12 +74,29 @@ app.use(postgraphile(pgPool, 'public', {
    }
 }));
 
+
+// const bucketName = 'mark-test-regen-1'
+// const bucketName = 'regen-registry'
+// const adapter = new S3Adapter(bucketName)
+//The AWS SDK expects the environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to be set.
+
+app.use(
+  '/image',
+  expressSharp({
+    //   imageAdapter: adapter,
+    imageAdapter: new HttpAdapter({
+      prefixUrl: 'https://regen-registry.s3.amazonaws.com',
+    }),
+  })
+)
+
 app.use(require('./routes/mailerlite'));
 app.use(require('./routes/contact'));
 app.use(require('./routes/buyers-info'));
 app.use(require('./routes/stripe'));
 app.use(require('./routes/auth'));
 app.use(require('./routes/recaptcha'));
+// app.use(require('./routes/image'));
 
 const port = process.env.PORT || 5000;
 
