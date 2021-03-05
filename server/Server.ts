@@ -75,8 +75,9 @@ app.use(postgraphile(pgPool, 'public', {
 }));
 
 
-const bucketName = 'mark-test-regen-1'
-const adapter = new S3Adapter(bucketName)
+// const bucketName = 'mark-test-regen-1'
+// const bucketName = 'regen-registry'
+// const adapter = new S3Adapter(bucketName)
 //The AWS SDK expects the environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to be set.
 
 app.use(
@@ -84,7 +85,7 @@ app.use(
   expressSharp({
     //   imageAdapter: adapter,
     imageAdapter: new HttpAdapter({
-      prefixUrl: 'https://mark-test-regen-1.s3.amazonaws.com',
+      prefixUrl: 'https://regen-registry.s3.amazonaws.com',
     }),
   })
 )
