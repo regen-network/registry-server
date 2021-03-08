@@ -9,6 +9,7 @@ import * as bodyParser from 'body-parser';
 import { createProxyMiddleware, Filter, Options, RequestHandler } from 'http-proxy-middleware';
 import { expressSharp, FsAdapter, HttpAdapter } from 'express-sharp'
 import { S3Adapter } from 'express-sharp'
+import { Keyv } from 'keyv'
 
 import { UserIncomingMessage } from './types';
 import getJwt from './middleware/jwt';
@@ -80,13 +81,16 @@ app.use(postgraphile(pgPool, 'public', {
 // const adapter = new S3Adapter(bucketName)
 //The AWS SDK expects the environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to be set.
 
+// const cache = new Keyv('redis://', { namespace: 'express-sharp' });
+
 app.use(
   '/image',
   expressSharp({
-    //   imageAdapter: adapter,
+    // cache,
     imageAdapter: new HttpAdapter({
       prefixUrl: 'https://regen-registry.s3.amazonaws.com',
     }),
+    //   imageAdapter: adapter,
   })
 )
 
