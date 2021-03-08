@@ -7,15 +7,13 @@ import * as cors from 'cors';
 import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { createProxyMiddleware, Filter, Options, RequestHandler } from 'http-proxy-middleware';
-import { expressSharp, FsAdapter, HttpAdapter } from 'express-sharp'
-import { S3Adapter } from 'express-sharp'
-import { Keyv } from 'keyv'
-
+import { expressSharp, HttpAdapter } from 'express-sharp'
 import { UserIncomingMessage } from './types';
 import getJwt from './middleware/jwt';
 
+const Keyv = require('keyv');
+const redis = require('redis');
 const url = require('url');
-
 const { pgPool } = require('./pool');
 
 if (process.env.NODE_ENV !== 'production') {
@@ -28,7 +26,6 @@ const REGISTRY_PREVIEW_HOSTNAME_PATTERN = /deploy-preview-\d+--regen-registry\.n
 
 const corsOptions = (req, callback) => {
   let options;
-  if (req.method == 'GET') console.log('corsOptions req', req)
   if (process.env.NODE_ENV !== 'production') {
     options = { origin: true };
   } else {
@@ -44,6 +41,9 @@ const corsOptions = (req, callback) => {
 
   callback(null, options) // callback expects two parameters: error and options
 }
+
+// const redisURL = url.parse(process.env.REDIS_URL);
+const redisClient = redis.createClient(6379);
 
 const app = express();
 
@@ -75,24 +75,19 @@ app.use(postgraphile(pgPool, 'public', {
    }
 }));
 
-
-// const bucketName = 'mark-test-regen-1'
-// const bucketName = 'regen-registry'
-// const adapter = new S3Adapter(bucketName)
-//The AWS SDK expects the environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to be set.
-
-// const cache = new Keyv('redis://', { namespace: 'express-sharp' });
+const cache = new Keyv('redis://localhost:6379', { namespace: 'express-sharp' });
+// Handle DB connection errors
+cache.on('error', err => console.log('Connection Error', err));
 
 app.use(
   '/image',
   expressSharp({
-    // cache,
+    cache,
     imageAdapter: new HttpAdapter({
       prefixUrl: 'https://regen-registry.s3.amazonaws.com',
     }),
-    //   imageAdapter: adapter,
   })
-)
+);
 
 app.use(require('./routes/mailerlite'));
 app.use(require('./routes/contact'));
@@ -100,7 +95,6 @@ app.use(require('./routes/buyers-info'));
 app.use(require('./routes/stripe'));
 app.use(require('./routes/auth'));
 app.use(require('./routes/recaptcha'));
-// app.use(require('./routes/image'));
 
 const port = process.env.PORT || 5000;
 
