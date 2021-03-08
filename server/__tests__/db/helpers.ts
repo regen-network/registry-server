@@ -96,6 +96,7 @@ export const withAdminUserDb = <T>(
       [organization.party_id]
     );
     await client.query('SELECT private.create_app_user_if_needed($1)', [sub]);
+    await client.query('INSERT INTO admin (auth0_sub) VALUES ($1)', [sub]);
 
     const user = await createUser(client, email, name, '', sub, null);
     await becomeUser(client, sub);
