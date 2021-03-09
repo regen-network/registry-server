@@ -42,8 +42,8 @@ const corsOptions = (req, callback) => {
   callback(null, options) // callback expects two parameters: error and options
 }
 
-// const redisURL = url.parse(process.env.REDIS_URL);
-const redisClient = redis.createClient(6379);
+const redisURL = url.parse(process.env.REDIS_URL);
+const redisClient = redis.createClient(6379); //todo env var?
 
 const app = express();
 
@@ -75,16 +75,20 @@ app.use(postgraphile(pgPool, 'public', {
    }
 }));
 
-const cache = new Keyv('redis://localhost:6379', { namespace: 'express-sharp' });
+const cache = new Keyv(redisURL, { namespace: 'express-sharp' });
 // Handle DB connection errors
 cache.on('error', err => console.log('Connection Error', err));
 
+// maybe check for S3 env var first?
+// aws adapter requires keys
+// TODO: add to readme
+// is there a way to automate redis with server startup? via docker?
 app.use(
   '/image',
   expressSharp({
     cache,
     imageAdapter: new HttpAdapter({
-      prefixUrl: 'https://regen-registry.s3.amazonaws.com',
+      prefixUrl: process.env.IMAGE_STORAGE_URL,
     }),
   })
 );
