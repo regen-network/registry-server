@@ -43,7 +43,6 @@ const corsOptions = (req, callback) => {
 }
 
 const redisURL = url.parse(process.env.REDIS_URL);
-const redisClient = redis.createClient(6379); //todo env var?
 
 const app = express();
 
