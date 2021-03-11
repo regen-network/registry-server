@@ -32,6 +32,9 @@ Based on `.env.example`, create some `.env` file with appropriate values.
 yarn migrate
 ```
 
+## Caching
+[Redis](https://redis.io//) is used for caching.
+
 ## Tests
 
 [Jest](https://jestjs.io/) is used for testing:

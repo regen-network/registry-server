@@ -7,7 +7,7 @@ import * as cors from 'cors';
 import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { createProxyMiddleware, Filter, Options, RequestHandler } from 'http-proxy-middleware';
-import { expressSharp, HttpAdapter } from 'express-sharp'
+import { expressSharp, HttpAdapter, S3Adapter } from 'express-sharp'
 import { UserIncomingMessage } from './types';
 import getJwt from './middleware/jwt';
 
@@ -76,21 +76,28 @@ app.use(postgraphile(pgPool, 'public', {
    }
 }));
 
-const cache = new Keyv(redisUrl, { namespace: 'express-sharp' });
-// Handle DB connection errors
-cache.on('error', err => console.log('Connection Error', err));
+let imageAdapter;
+let imageCache = null;
 
-// maybe check for S3 env var first?
-// aws adapter requires keys
-// TODO: add to readme
-// is there a way to automate redis with server startup? via docker?
+if (process.env.REDIS_URL) {
+  imageCache = new Keyv(redisUrl, { namespace: 'image' });
+  // Handle DB connection errors
+  imageCache.on('error', err => console.log('Connection Error', err));
+}
+
+if (process.env.AWS_ACCESS_KEY_ID) {
+  const bucketName = process.env.AWS_S3_BUCKET
+  imageAdapter = new S3Adapter(bucketName)
+  console.log('Using S3 image adapter');
+} else {
+  imageAdapter = new HttpAdapter({ prefixUrl: process.env.IMAGE_STORAGE_URL });
+}
+
 app.use(
   '/image',
   expressSharp({
-    cache,
-    imageAdapter: new HttpAdapter({
-      prefixUrl: process.env.IMAGE_STORAGE_URL,
-    }),
+    cache: imageCache,
+    imageAdapter,
   })
 );
 
