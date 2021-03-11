@@ -44,6 +44,7 @@ const corsOptions = (req, callback) => {
 
 const redisUrl = url.parse(process.env.REDIS_URL);
 const redisClient = redis.createClient(process.env.REDIS_URL);
+console.log('Connecting to Redis at: ', process.env.REDIS_URL)
 
 const app = express();
 
