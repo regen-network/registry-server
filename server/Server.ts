@@ -43,11 +43,8 @@ const corsOptions = (req, callback) => {
 }
 
 const redisUrl = url.parse(process.env.REDIS_URL);
-const redisClient = redis.createClient(redisUrl, {
-  tls: {
-    rejectUnauthorized: false,
-  }
-});
+const redisClient = redis.createClient();
+
 const app = express();
 
 app.use(fileUpload());
