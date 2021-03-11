@@ -42,7 +42,8 @@ const corsOptions = (req, callback) => {
   callback(null, options) // callback expects two parameters: error and options
 }
 
-const redisURL = url.parse(process.env.REDIS_URL);
+const redisUrl = url.parse(process.env.REDIS_URL);
+const redisClient = redis.createClient();
 
 const app = express();
 
@@ -74,7 +75,7 @@ app.use(postgraphile(pgPool, 'public', {
    }
 }));
 
-const cache = new Keyv(redisURL, { namespace: 'express-sharp' });
+const cache = new Keyv(redisUrl, { namespace: 'express-sharp' });
 // Handle DB connection errors
 cache.on('error', err => console.log('Connection Error', err));
 
