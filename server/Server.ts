@@ -7,11 +7,10 @@ import * as cors from 'cors';
 import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { createProxyMiddleware, Filter, Options, RequestHandler } from 'http-proxy-middleware';
-import { expressSharp, HttpAdapter, S3Adapter } from 'express-sharp';
 import { UserIncomingMessage } from './types';
 import getJwt from './middleware/jwt';
+import imageOptimizer from './middleware/imageOptimizer';
 
-const Keyv = require('keyv');
 const redis = require('redis');
 const url = require('url');
 const { pgPool } = require('./pool');
@@ -53,6 +52,8 @@ app.use(cors(corsOptions));
 
 app.use(getJwt(false));
 
+app.use('/image', imageOptimizer(redisUrl));
+
 app.use('/ledger', createProxyMiddleware({
   target: process.env.LEDGER_TENDERMINT_RPC || 'http://13.59.81.92:26657/',
   pathRewrite: { '^/ledger': '/'},
@@ -75,31 +76,6 @@ app.use(postgraphile(pgPool, 'public', {
     } else return { role: 'app_user' };
    }
 }));
-
-let imageAdapter;
-let imageCache = null;
-
-if (process.env.REDIS_URL) {
-  imageCache = new Keyv(redisUrl, { namespace: 'image' });
-  // Handle DB connection errors
-  imageCache.on('error', err => console.log('Redis Connection Error', err));
-}
-
-if (process.env.AWS_ACCESS_KEY_ID) {
-  const bucketName = process.env.AWS_S3_BUCKET
-  imageAdapter = new S3Adapter(bucketName)
-  console.log('Using S3 image adapter');
-} else {
-  imageAdapter = new HttpAdapter({ prefixUrl: process.env.IMAGE_STORAGE_URL });
-}
-
-app.use(
-  '/image',
-  expressSharp({
-    cache: imageCache,
-    imageAdapter,
-  })
-);
 
 app.use(require('./routes/mailerlite'));
 app.use(require('./routes/contact'));
