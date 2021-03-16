@@ -34,6 +34,12 @@ yarn migrate
 
 ## Caching
 [Redis](https://redis.io//) is used for caching.
+You will need to have Redis running locally. Install and run
+```
+redis-server
+```
+then set your REDIS_URL env variable (default is redis://localhost:6379).
+TODO: see if we can use Docker for this. See Issue #527
 
 ## Tests
 

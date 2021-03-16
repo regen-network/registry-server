@@ -7,7 +7,7 @@ import * as cors from 'cors';
 import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { createProxyMiddleware, Filter, Options, RequestHandler } from 'http-proxy-middleware';
-import { expressSharp, HttpAdapter, S3Adapter } from 'express-sharp'
+import { expressSharp, HttpAdapter, S3Adapter } from 'express-sharp';
 import { UserIncomingMessage } from './types';
 import getJwt from './middleware/jwt';
 
@@ -82,7 +82,7 @@ let imageCache = null;
 if (process.env.REDIS_URL) {
   imageCache = new Keyv(redisUrl, { namespace: 'image' });
   // Handle DB connection errors
-  imageCache.on('error', err => console.log('Connection Error', err));
+  imageCache.on('error', err => console.log('Redis Connection Error', err));
 }
 
 if (process.env.AWS_ACCESS_KEY_ID) {
