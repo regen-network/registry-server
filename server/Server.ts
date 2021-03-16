@@ -41,7 +41,6 @@ const corsOptions = (req, callback) => {
   callback(null, options) // callback expects two parameters: error and options
 }
 
-const redisUrl = url.parse(process.env.REDIS_URL);
 const redisClient = redis.createClient(process.env.REDIS_URL);
 console.log('Connecting to Redis at: ', process.env.REDIS_URL)
 
@@ -52,7 +51,7 @@ app.use(cors(corsOptions));
 
 app.use(getJwt(false));
 
-app.use('/image', imageOptimizer(redisUrl));
+app.use('/image', imageOptimizer());
 
 app.use('/ledger', createProxyMiddleware({
   target: process.env.LEDGER_TENDERMINT_RPC || 'http://13.59.81.92:26657/',

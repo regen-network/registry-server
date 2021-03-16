@@ -1,12 +1,14 @@
+import * as express from 'express';
 import { expressSharp, HttpAdapter, S3Adapter } from 'express-sharp';
+
 const Keyv = require('keyv');
 
-export default function imageOptimizer(redisUrl: string) {
+export default function imageOptimizer(): express.Router {
   let imageAdapter;
   let imageCache = null;
   
   if (process.env.REDIS_URL) {
-    imageCache = new Keyv(redisUrl, { namespace: 'image' });
+    imageCache = new Keyv(process.env.REDIS_URL, { namespace: 'image' });
     // Handle DB connection errors
     imageCache.on('error', err => console.log('Redis Connection Error', err));
   }
