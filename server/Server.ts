@@ -7,12 +7,12 @@ import * as cors from 'cors';
 import { release } from 'os';
 import * as bodyParser from 'body-parser';
 import { createProxyMiddleware, Filter, Options, RequestHandler } from 'http-proxy-middleware';
-
 import { UserIncomingMessage } from './types';
 import getJwt from './middleware/jwt';
+import imageOptimizer from './middleware/imageOptimizer';
 
+const redis = require('redis');
 const url = require('url');
-
 const { pgPool } = require('./pool');
 
 if (process.env.NODE_ENV !== 'production') {
@@ -41,12 +41,17 @@ const corsOptions = (req, callback) => {
   callback(null, options) // callback expects two parameters: error and options
 }
 
+const redisClient = redis.createClient(process.env.REDIS_URL);
+console.log('Connecting to Redis at: ', process.env.REDIS_URL)
+
 const app = express();
 
 app.use(fileUpload());
 app.use(cors(corsOptions));
 
 app.use(getJwt(false));
+
+app.use('/image', imageOptimizer());
 
 app.use('/ledger', createProxyMiddleware({
   target: process.env.LEDGER_TENDERMINT_RPC || 'http://13.59.81.92:26657/',
