@@ -10,7 +10,6 @@ import { UserIncomingMessage } from './types';
 import getJwt from './middleware/jwt';
 import imageOptimizer from './middleware/imageOptimizer';
 
-const redis = require('redis');
 const url = require('url');
 const { pgPool } = require('./pool');
 
