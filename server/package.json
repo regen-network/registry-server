@@ -43,7 +43,7 @@
     "ts-node": "^9.1.1",
     "typescript": "^3.9.5",
     "unzipper": "^0.9.4",
-    "xmldom": "^0.1.27"
+    "xmldom": "^0.5.0"
   },
   "scripts": {
     "start": "ts-node Server.ts",
