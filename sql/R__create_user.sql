@@ -25,8 +25,6 @@ begin
 end;
 $$ language plpgsql volatile set search_path to pg_catalog, public, pg_temp;
 
-drop function if exists public.really_create_user;
-
 create or replace function public.really_create_user(
   email text,
   name text,
