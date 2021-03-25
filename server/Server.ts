@@ -4,14 +4,12 @@ import { postgraphile } from 'postgraphile';
 import * as PgManyToManyPlugin from '@graphile-contrib/pg-many-to-many';
 import * as fileUpload from 'express-fileupload';
 import * as cors from 'cors';
-import { release } from 'os';
-import * as bodyParser from 'body-parser';
-import { createProxyMiddleware, Filter, Options, RequestHandler } from 'http-proxy-middleware';
+import { createProxyMiddleware } from 'http-proxy-middleware';
+
 import { UserIncomingMessage } from './types';
 import getJwt from './middleware/jwt';
 import imageOptimizer from './middleware/imageOptimizer';
 
-const redis = require('redis');
 const url = require('url');
 const { pgPool } = require('./pool');
 
@@ -22,6 +20,7 @@ if (process.env.NODE_ENV !== 'production') {
 const REGEN_HOSTNAME_PATTERN = /regen\.network$/;
 const WEBSITE_PREVIEW_HOSTNAME_PATTERN = /deploy-preview-\d+--regen-website\.netlify\.app$/;
 const REGISTRY_PREVIEW_HOSTNAME_PATTERN = /deploy-preview-\d+--regen-registry\.netlify\.app$/;
+const AUTH0_HOSTNAME_PATTERN = /regen-network-registry\.auth0\.com$/;
 
 const corsOptions = (req, callback) => {
   let options;
@@ -31,7 +30,8 @@ const corsOptions = (req, callback) => {
     const originURL = req.header('Origin') && url.parse(req.header('Origin'));
     if (originURL && (originURL.hostname.match(REGEN_HOSTNAME_PATTERN) ||
       originURL.hostname.match(WEBSITE_PREVIEW_HOSTNAME_PATTERN) ||
-      originURL.hostname.match(REGISTRY_PREVIEW_HOSTNAME_PATTERN))) {
+      originURL.hostname.match(REGISTRY_PREVIEW_HOSTNAME_PATTERN) ||
+      originURL.hostname.match(AUTH0_HOSTNAME_PATTERN))) {
       options = { origin: true }; // reflect (enable) the requested origin in the CORS response
     } else {
       options = { origin: false }; // disable CORS for this request
@@ -40,9 +40,6 @@ const corsOptions = (req, callback) => {
 
   callback(null, options) // callback expects two parameters: error and options
 }
-
-const redisClient = redis.createClient(process.env.REDIS_URL);
-console.log('Connecting to Redis at: ', process.env.REDIS_URL)
 
 const app = express();
 
