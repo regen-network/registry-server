@@ -1,7 +1,7 @@
 create or replace function public.really_create_user_if_needed(
   user_email text,
   name text,
-  avatar text,
+  image text,
   auth0_sub text,
   roles text[] default null,
   address jsonb default null,
@@ -18,7 +18,7 @@ begin
   if v_user.id is not null then 
     return v_user;
   else
-    select * from public.really_create_user(user_email, name, avatar, auth0_sub, roles, address, wallet_addr, updates)
+    select * from public.really_create_user(user_email, name, image, auth0_sub, roles, address, wallet_addr, updates)
     into v_user;
     return v_user;
   end if;
@@ -29,7 +29,7 @@ drop function if exists public.really_create_user;
 create or replace function public.really_create_user(
   email text,
   name text,
-  avatar text,
+  image text,
   auth0_sub text,
   roles text[] default null,
   address jsonb default null,
@@ -68,16 +68,16 @@ begin
 
   -- Insert the new party corresponding to the user
   insert into party
-    (type, name, roles, address_id, wallet_id)
+    (type, name, image, roles, address_id, wallet_id)
   values
-    ('user', name, roles, v_address.id, v_wallet.id)
+    ('user', name, image, roles, v_address.id, v_wallet.id)
   returning * into v_party;
 
   -- Insert the new user
   insert into "user"
-    (email, avatar, auth0_sub, party_id, updates)
+    (email, auth0_sub, party_id, updates)
   values
-    (email, avatar, auth0_sub, v_party.id, updates)
+    (email, auth0_sub, v_party.id, updates)
   returning * into v_user;
 
   -- Refresh the user
@@ -93,7 +93,7 @@ $$ language plpgsql volatile set search_path to pg_catalog, public, pg_temp;
 create or replace function private.really_create_user_if_needed(
   email text,
   name text,
-  avatar text,
+  image text,
   sub text,
   roles text[] default null
 ) returns "user" as $$
@@ -130,7 +130,7 @@ begin
     if v_auth_user_id is null then
       select *
       into v_user
-      from public.really_create_user(email, name, avatar, sub, roles, null, name, false);
+      from public.really_create_user(email, name, image, sub, roles, null, name, false);
     end if;
   end if;
 

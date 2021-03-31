@@ -2,7 +2,7 @@ import { withRootDb, createUserOrganisation } from '../helpers';
 
 const email: string = 'johndoe@gmail.com';
 const name: string = 'john doe';
-const avatar: string = 'avatar';
+const image: string = 'image';
 const orgName = 'john doe ltd';
 const roles = null;
 const walletAddr: string = 'addr123';
@@ -12,7 +12,7 @@ const updates: boolean = true;
 it('creates user and org successfully', () =>
   withRootDb(async (client) => {
     // Action
-    const org = await createUserOrganisation(client, email, name, avatar, orgName, walletAddr, roles, orgAddress);
+    const org = await createUserOrganisation(client, email, name, image, orgName, walletAddr, roles, orgAddress);
 
     // Assertions
     // Creates org, org party, wallet and address
@@ -64,7 +64,6 @@ it('creates user and org successfully', () =>
     );
 
     expect(users).toHaveLength(1);
-    expect(users[0].avatar).toEqual(avatar);
     expect(users[0].email).toEqual(email);
 
     const { rows: userParties } = await client.query(
@@ -75,6 +74,7 @@ it('creates user and org successfully', () =>
     expect(userParties).toHaveLength(1);
     const party = userParties[0];
 
+    expect(party.image).toEqual(image);
     expect(party.name).toEqual(name);
     expect(party.type).toEqual('user');
     expect(party.roles).toBeNull();

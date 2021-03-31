@@ -2,7 +2,7 @@ create or replace function public.create_user_organization_if_needed
 (
   email text,
   name text,
-  avatar text,
+  image text,
   org_name text,
   wallet_addr text,
   roles text[] default null,
@@ -14,7 +14,7 @@ declare
   v_org organization;
 begin
   v_user := public.really_create_user_if_needed
-(email, name, avatar, null, roles, null, name, updates);
+(email, name, image, null, roles, null, name, updates);
   v_org := public.really_create_organization_if_needed
 (org_name, wallet_addr, v_user.id, roles, org_address);
 
@@ -27,7 +27,7 @@ set search_path
 create or replace function public.create_user_organization(
   email text,
   name text,
-  avatar text,
+  image text,
   org_name text,
   wallet_addr text,
   roles text[] default null,
@@ -38,7 +38,7 @@ declare
   v_org organization;
 begin
   v_user := public.really_create_user
-    (email, name, avatar, null, roles, null, null, false);
+    (email, name, image, null, roles, null, null, false);
   v_org := public.really_create_organization
     (org_name, wallet_addr, v_user.id, roles, org_address);-- TODO: (adding comment so it shows in diff - remove after clarified) Does this function need to be updated to reflect changes to `public.really_create_organization? (adding legal name) Two arguments (legal_name and logo) aren't nullable, so i'm not sure how i'd fill them in here
 

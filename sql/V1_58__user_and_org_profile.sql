@@ -20,3 +20,7 @@ WHERE p.id=o.party_id;
 ALTER TABLE organization drop column description; 
 
 ALTER TABLE organization ADD column legal_name text NOT NULL DEFAULT '';
+
+ALTER TABLE "user" ADD column role_title text;
+ALTER TABLE "organization" DROP column logo;
+ALTER TABLE "user" DROP column avatar;
