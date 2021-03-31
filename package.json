@@ -13,7 +13,7 @@
   },
   "scripts": {
     "postinstall": "lerna bootstrap",
-    "serve": "lerna run --scope=regen-network-mvp-server start --stream",
+    "serve": "lerna run --scope=registry-server start --stream",
     "start": "pm2-runtime start pm2.config.js --env development",
     "dev": "pm2 start pm2.config.js && pm2 monit",
     "restart": "pm2 restart all",

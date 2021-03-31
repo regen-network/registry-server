@@ -19,6 +19,15 @@ of NodeJS for this project.
 
 Based on `.env.example`, create some `.env` file with appropriate values.
 
+## Caching
+[Redis](https://redis.io//) is used for caching.
+You will need to have Redis running locally. Install and run
+```
+redis-server
+```
+then set your REDIS_URL env variable (default is redis://localhost:6379).
+TODO: see if we can use Docker for this. See Issue #527
+
 ## Starting a development server
 
 1. Install all dependencies with `yarn`
