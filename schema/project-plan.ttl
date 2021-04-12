@@ -1,0 +1,617 @@
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <http://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix regen: <http://regen.network/> .
+@prefix geojson: <https://purl.org/geojson/vocab#> .
+
+# Node and Property Shapes
+
+regen:ProjectPlanShape 
+    a rdfs:Class, sh:NodeShape ;
+    sh:targetClass regen:ProjectPlan ;
+    rdfs:label "Project Plan" ;
+    rdfs:subClassOf rdfs:Resource ;
+
+    sh:property [
+        sh:path regen:creditClass ;
+        sh:class regen:CreditClass;
+        sh:nodeKind sh:IRI ;
+        sh:maxCount 1 ;
+        sh:minCount 1 ;
+        sh:group regen:ProjectPlanCreditClassGroup ;
+    ] ;
+    sh:property [
+        sh:path regen:name ;
+        sh:name "Project name" ;
+        rdfs:label "project name" ;
+        sh:description "This is the name of the farm, ranch, property, or conservation project." ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:minCount 1 ;
+        sh:group regen:ProjectPlanBasicInfoGroup ;
+    ] ;
+    sh:property [
+        sh:path regen:size ;
+        sh:name "Size in hectares or acres" ;
+        rdfs:label "size";
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:minCount 1 ;
+        sh:group regen:ProjectPlanBasicInfoGroup ;
+        sh:node regen:ProjectSizeShape ;
+    ] ;
+    sh:property [
+        sh:path regen:regenerativePractices ;
+        sh:name "Which regenerative practices have you been applying and for how long?" ;
+        sh:minCount 1 ;
+        sh:group regen:ProjectPlanEligibilityLandUseHistoryGroup ;
+    ] ;
+    sh:property [
+        sh:path regen:previousRegenerativePractices ;
+        sh:name "Prior to adopting these regenerative practices (going back 5 years prior) how were you using the land?" ;
+        sh:property [
+            sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+            sh:datatype xsd:string ;
+            sh:in ("Cropland" "Traditional Grazing" "Natural ecosystem, unmanaged") ;
+            sh:minCount 1 ;
+            sh:maxCount 3 ;
+        ] ;
+        sh:group regen:ProjectPlanEligibilityLandUseHistoryGroup ;
+    ] ;
+    sh:property [
+        sh:path regen:priorEnvironmentalConditions ;
+        sh:name "Prior environmental conditions" ;
+        sh:description "Relevant environmental changes within the project area. These include changes in vegetation such as clearing or planting, hydrology, soil conditions, or other." ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:group regen:ProjectPlanEligibilityLandUseHistoryGroup ;
+    ] ;
+    sh:property [
+        sh:path regen:regulatoryCompliance ;
+        sh:name "Attest to your project’s regulatory compliance" ;
+        sh:description "This project complies with all and any relevant local, regional and national laws, statutes and regulatory frameworks." ;
+        sh:datatype xsd:boolean ;
+        sh:hasValue true ;
+        sh:group regen:ProjectPlanEligibilityComplianceGroup ;
+    ] ;
+
+    sh:property [
+        sh:path regen:gis ;
+        sh:name "Upload GIS data" ;
+        sh:description "<p>You may upload .shp, .kml, or .json files. See <a href=\"\">these instructions</a> for making your own with Google Maps.</p><p><i>Please note: in addition to general project boundaries, add any additional internal boundaries to define parcels, paddocks, or other strata if possible.</i></p>" ;
+        sh:group regen:ProjectPlanBoundariesGroup ;
+        sh:node dash:ListShape ;
+        sh:property [
+            sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+            sh:datatype xsd:string ;
+            sh:pattern ".shp$|.json$|.kml$" ;
+            sh:minCount 1 ;
+        ]
+    ] ;
+
+    sh:or (
+        [
+            sh:property [
+                sh:path regen:landSteward ;
+                sh:minCount 1 ;
+                sh:maxCount 1 ;
+                sh:xone (
+                    sh:node regen:IndividualShape
+                    sh:node regen:OrganizationShape
+                )
+            ]
+        ]
+        [
+            sh:property [
+                sh:path regen:landOwner ;
+                sh:minCount 1 ;
+                sh:maxCount 1 ;
+                sh:xone (
+                    sh:node regen:IndividualShape
+                    sh:node regen:OrganizationShape
+                )
+            ]
+        ]
+        [
+            sh:property [
+                sh:path regen:projectDeveloper ;
+                sh:minCount 1 ;
+                sh:maxCount 1 ;
+                sh:xone (
+                    sh:node regen:IndividualShape
+                    sh:node regen:OrganizationShape
+                )
+            ]
+        ]
+    );
+
+    sh:property [
+        sh:path regen:landTenureEvidence ;
+        sh:name "Upload a document attesting to your land tenure rights" ;
+        rdfs:label "land tenure evidence" ;
+        sh:description "Accepted file formats: .pdf, .doc, .jpg and .png" ;
+        sh:group regen:ProjectPlanLandTenureGroup ;
+        sh:datatype xsd:string ;
+        sh:pattern ".pdf$|.doc$|.jpeg$|.jpg$|.png$" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    
+    sh:property [
+        sh:path regen:expectedLeakage ;
+        sh:name "Please indicate the expected leakage related to the proposed activities" ;
+        rdfs:label "expected leakage" ;
+        sh:group regen:ProjectPlanLeakageGroup ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:in ("De Minimis" "Above De Minimis")
+    ] ;
+    sh:xone (
+		[
+			sh:property [
+                sh:path regen:expectedLeakage ;
+                sh:hasValue "De Minimis";
+            ] ;
+        ]
+		[
+			sh:property [
+                sh:path regen:expectedLeakage ;
+                sh:hasValue "Above De Minimis";
+            ] ;
+			sh:property [
+                sh:path regen:aboveDeMinimisLeakageExplanation ;
+                sh:name "Provide an explanation and an estimate of CO2e leakage if possible." ;
+                sh:group regen:ProjectPlanLeakageGroup ;
+                sh:datatype xsd:string ;
+                sh:minCount 1 ;
+                sh:maxCount 1 ;
+            ] 
+		]
+	) ;
+        sh:property [
+        sh:path regen:dataPrivacyAgreement ;
+        sh:name "The following information is necessary to be made public by default: 1) Entity names and locations - land steward, land owner, project developer 2) MRV data - project plan, monitoring and verification reports. 3) Issuance certificate 4) Data on the ledger is public but the association data will not be public (e.g. you'll see the location on the ledger but it won't show the entity name there)" ;
+        rdfs:label "agreement about data privacy" ;
+        sh:description "I agree to necessary data about my project being made available publicly, including the project plan, monitoring and verification reports, issuance certificate, and entity info" ;
+        sh:group regen:ProjectPlanDataPrivacyGroup ;
+        sh:datatype xsd:boolean ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:hasValue true ;
+    ] ;
+.
+
+regen:ProjectSizeShape
+    a rdfs:Class, sh:NodeShape ;
+    rdfs:label "Size in hectares or acres" ;
+    sh:property [
+        sh:path regen:size ;
+        sh:datatype xsd:decimal ;
+        sh:maxCount 1 ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path regen:sizeUnit ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:minCount 1 ;
+        sh:in ( "hectares" "acres" ) ;
+    ] ;
+.
+    
+regen:GrasslandsCreditClassEligibilityShape
+    a rdfs:Class, sh:NodeShape ;
+    # Field specific to Grasslands credit class
+    sh:property [
+        sh:path regen:includesGrasslands ;
+        sh:name "Does your project include grasslands?" ;
+        sh:description "Grassland is defined as land made up of large open areas of grasses and herbaceous vegetation which account for greater than 80% of the total vegetation. Grassland projects are not subjective to intensive management such as tilling, but may include pasturelands where grasses and/or legumes are planted for livestock grazing, and land managed with agroforestry practices.";
+        sh:datatype xsd:boolean ;
+        sh:hasValue true ;
+        sh:group regen:ProjectPlanEligibilityGroup ;
+    ] ;
+    # Answers specific to Grasslands credit class
+    sh:property [
+        sh:path regen:regenerativePractices ;
+        sh:property [
+            sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+            sh:node regen:GrasslandsCreditClassRegenerativePracticesShape ;
+            sh:minCount 1 ;
+            sh:maxCount 4 ;
+        ] ;
+    ] ;
+.
+
+regen:GrasslandsCreditClassRegenerativePracticesShape
+    a rdfs:Class, sh:NodeShape ;
+    sh:xone (
+        [
+            sh:property [
+                sh:path regen:regenerativePracticeName ;
+                sh:datatype xsd:string ;
+                sh:in ("Rotational Grazing" "High Density Grazing" "Residue Grazing") ;
+                sh:minCount 1 ;
+            ] ;
+        ]
+        [
+            sh:property [
+                sh:path regen:regenerativePracticeName ;
+                sh:datatype xsd:string ;
+                rdfs:label "Other regenerative grazing practice" ;
+                sh:minCount 1 ;
+            ] ;
+        ]
+    ) ;
+    sh:property [
+        sh:path regen:regenerativePracticeStartDate ;
+        sh:datatype  xsd:date ;
+        sh:minCount 1 ;
+    ] ;
+.
+
+regen:OrganizationShape
+    a sh:NodeShape ;
+    rdfs:label "Add Organization" ;
+    sh:property [
+        sh:path regen:legalName ;
+        sh:datatype xsd:string ;
+        sh:name "Organization legal name" ;
+        sh:description "This is the name of the farm, ranch, cooperative, non-profit, or other organization." ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path regen:organizationLocation ;
+        sh:name "Organization location" ;
+        sh:description "This address is used for issuing credits. If you choose to show this entity on the project page, only city, state/province, and country will be displayed. " ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:node geojson:Feature ;
+    ] ;
+    sh:property [
+        sh:path regen:responsiblePerson ;
+        sh:datatype xsd:string ;
+        sh:name "Responsible person at organization" ;
+        sh:description "This is the person who will be signing the project plan, and whose name will appear on credit issuance certificates if credits are issued to this organization." ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path regen:responsiblePersonRole ;
+        sh:datatype xsd:string ;
+        sh:name "Responsible person’s role at organization" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property regen:Email ;
+.
+
+regen:IndividualShape
+    a sh:NodeShape ;
+    sh:targetClass regen:Individual ;
+    rdfs:label "Add Individual" ;
+    sh:property [
+        sh:path regen:fullName ;
+        sh:datatype xsd:string ;
+        sh:name "Full name" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path regen:role ;
+        sh:datatype xsd:string ;
+        sh:name "role" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property regen:Email ;
+    sh:property [
+        sh:path regen:phoneNumber ;
+        sh:datatype xsd:string ;
+        sh:name "Phone number" ;
+    ] 
+.
+
+# Shape for projects that belong to GHG focused credit class
+regen:GHGCreditClassShape
+    a rdfs:Class, sh:NodeShape ;
+    sh:property [
+        sh:path regen:noEmissionsTradingPrograms ;
+        sh:name "Will your project participate in emission trading programs?" ;
+        sh:description "No, GHG removals generated by the project will not be used for compliance under emissions trading program or any other mechanism that includes GHG allowance trading.";
+        sh:datatype xsd:boolean ;
+        sh:hasValue true ;
+        sh:group regen:ProjectPlanEligibilityComplianceGroup ;
+    ] ;
+    sh:property [
+        sh:path regen:hasOtherGHGPrograms ;
+        sh:name "Is your project participating in other GHG programs?" ;
+        sh:datatype xsd:boolean ;
+        sh:minCount 1 ;
+        sh:group regen:ProjectPlanEligibilityComplianceGroup ;
+        
+    ] ;
+    sh:xone (
+        [
+            sh:property [
+                sh:path regen:hasOtherGHGPrograms ;
+                sh:hasValue false ;
+            ] ;
+        ]
+        [
+            sh:property [
+                sh:path regen:hasOtherGHGPrograms ;
+                sh:hasValue true ;
+            ] ;
+            sh:property [
+                sh:path regen:otherGHGPrograms ;
+                sh:property [
+                    sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+                    sh:node regen:GHGRegistrationInfoShape ;
+                    sh:minCount 1 ;
+                ] ;
+                sh:group regen:ProjectPlanEligibilityComplianceGroup ;
+            ] ;
+        ]
+    ) ;
+    sh:property [
+        sh:path regen:hasOtherGHGEnvironmentalCredits ;
+        sh:name "Will your project seek or receive another form of GHG environmental credits?" ;
+        sh:datatype xsd:boolean ;
+        sh:group regen:ProjectPlanEligibilityComplianceGroup ;
+        sh:minCount 1 ;
+    ] ;
+    sh:xone (
+        [
+            sh:property [
+                sh:path regen:hasOtherGHGEnvironmentalCredits ;
+                sh:hasValue false ;
+            ] ;
+        ]
+        [
+            sh:property [
+                sh:path regen:hasOtherGHGEnvironmentalCredits ;
+                sh:hasValue true ;
+            ] ;
+            sh:property [
+                sh:path regen:otherGHGEnvironmentalCredits ;
+                sh:property [
+                    sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+                    sh:node regen:EnvironmentalCreditsShape ;
+                    sh:minCount 1 ;
+                ] ;
+                sh:group regen:ProjectPlanEligibilityComplianceGroup ;
+            ] ;
+        ]
+    ) ;
+    sh:property [
+        sh:path regen:permanenceRequirements ;
+        sh:name "How will the project comply with permanence requirements?" ;
+        rdfs:label "permanence requirements" ;
+        sh:description "Regen Registry requires a 25-year permanence period." ;
+        sh:group regen:ProjectPlanPermanenceGroup ;
+        sh:datatype xsd:string ;
+        sh:in ("Allocate an additional 5% of each credit issuance (in addition to the Buffer Pool) to a dedicated Permanence Reversal Buffer." "Register a covenant on the land from the Project Registration until the end of the 25-year permanence period.")  ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:xone (
+		[
+			sh:property [
+                sh:path regen:permanenceRequirements ;
+                sh:hasValue "Allocate an additional 5% of each credit issuance (in addition to the Buffer Pool) to a dedicated Permanence Reversal Buffer."  ;
+            ] ;
+        ]
+		[
+			sh:property [
+                sh:path regen:permanenceRequirements ;
+                sh:hasValue "Register a covenant on the land from the Project Registration until the end of the 25-year permanence period."  ;
+            ] ;
+			sh:property [
+                sh:path regen:covenantEvidence ;
+                sh:name "Upload evidence of covenant" ;
+                rdfs:label "covenant evidence" ;
+                sh:description "You may upload a jpg, png, .doc, or pdf." ;
+                sh:group regen:ProjectPlanPermanenceGroup ;
+                sh:datatype xsd:string ;
+                sh:pattern ".pdf$|.doc$|.jpeg$|.jpg$|.png$" ;
+                sh:minCount 1 ;
+                sh:maxCount 1 ;
+            ] 
+		]
+	) ;
+.
+
+regen:GHGRegistrationInfoShape
+    a rdfs:Class, sh:NodeShape ;  
+    rdfs:label "Add GHG Registration Info" ;
+    sh:property [
+        sh:name "GHG program name" ;
+        sh:path regen:ghgProgramName ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:name "GHG program registration number" ;
+        sh:path regen:ghgProgramRegistrationNumber ;
+        sh:datatype xsd:string ;
+    ] ;
+. 
+
+regen:EnvironmentalCreditsShape
+    a rdfs:Class, sh:NodeShape ;  
+    rdfs:label "Other forms of environmental credits" ;
+    sh:property [
+        sh:name "Environmental credits program name" ;
+        sh:path regen:environmentalCreditsProgramName ;
+        sh:datatype xsd:string ;
+        sh:maxCount 1 ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:name "Environmental credits registration number" ;
+        sh:path regen:environmentalCreditsRegistrationNumber ;
+        sh:datatype xsd:string ;
+    ] ;
+. 
+
+# Shape for projects that belong to biodiversity focused credit class
+regen:BiodiversityCreditClassShape
+    a rdfs:Class, sh:NodeShape ;
+    sh:property [
+        sh:path regen:plantSpecies ;
+        sh:name "Choose important plant species in this habitat" ;
+        rdfs:label "plant species";
+        sh:group regen:ProjectPlanHabitatsAndThreathsGroup ;
+        sh:node dash:ListShape ;
+        sh:minCount 1 ;
+        sh:property [
+            sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+            sh:datatype xsd:string ;
+            sh:minCount 1 ;
+        ] ;
+    ] ;
+    sh:property [
+        sh:path regen:vegetativeHabitatAndProtectedSpecies ;
+        sh:name "Describe the vegetative habitat and protected or endangered species" ;
+        rdfs:label "vegetative habitat and protected species";
+        sh:description "Specify vegetative habitat for the project area including protected, endangered or other species of particular value, major vegetation community types and/or major ecological communities." ;
+        sh:group regen:ProjectPlanHabitatsAndThreathsGroup ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path regen:environmentalThreats ;
+        sh:name "Environmental threats in last few years" ;
+        rdfs:label "environmental threats" ;
+        sh:group regen:ProjectPlanHabitatsAndThreathsGroup ;
+        sh:minCount 1 ;
+        sh:property [
+            sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+            sh:datatype xsd:string ;
+            sh:in ( "Drought" "Fire" "Flood" "Pests" "Invasive species" "Biodiversity loss" ) ;
+        ] ;
+    ] ;
+.
+
+# Shape for projects that belong to credit class with co-benefits
+regen:CoBenefitsCreditClassShape
+    a rdfs:Class, sh:NodeShape ;
+    sh:property [
+        sh:path regen:ecologicalOutcomes ;
+        sh:name "Please indicate which ecological outcomes are evident in your project" ;
+        rdfs:label "ecological outcomes" ;
+        sh:group regen:ProjectPlanCoBenefitsGroup ;
+        sh:minCount 1 ;
+        sh:property [
+            sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+            sh:or (
+                sh:datatype xsd:string
+                sh:in (
+                    "Above ground biomass carbon sequestration"
+                    "Extended growing season"
+                    "Improved animal biodiversity"
+                    "Improved drought resilience"
+                    "Improved ecosystems health"
+                    "Improved fire resilience"
+                    "Improved ground cover"
+                    "Improved pest resilience"
+                    "Improved plant biodiversity"
+                    "Improved soil microbe diversity"
+                    "Improved water filtration"
+                    "Improved water quality"
+                    "Indigenous rights"
+                    "Reduced chemical runoff"
+                    "Reduced flooding"
+                    "Reduced soil erosion"
+                    "Social co-benefits"
+                )
+            );
+        ] ;
+    ] ;
+.
+
+# Groups
+
+regen:ProjectPlanCreditClassGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Choose a Credit Class" ;
+	sh:order "0"^^xsd:decimal .
+
+regen:ProjectPlanBasicInfoGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Group Info" ;
+	sh:order "1"^^xsd:decimal .
+
+regen:ProjectPlanEligibilityGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Eligibility" ;
+	sh:order "2"^^xsd:decimal .
+
+regen:ProjectPlanEligibilityLandUseHistoryGroup
+	a sh:PropertyGroup ;
+	rdfs:label "EligibilityLandUseHistory" ;
+	sh:order "3"^^xsd:decimal .
+
+regen:ProjectPlanEligibilityComplianceGroup
+	a sh:PropertyGroup ;
+	rdfs:label "EligibilityCompliance" ;
+	sh:order "4"^^xsd:decimal .
+
+regen:ProjectPlanBoundariesGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Boundaries" ;
+	sh:order "5"^^xsd:decimal .
+
+regen:ProjectPlanRolesGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Roles" ;
+	sh:order "6"^^xsd:decimal .
+
+regen:ProjectPlanHabitatsAndThreathsGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Habitats & Threats" ;
+	sh:order "7"^^xsd:decimal .
+
+regen:ProjectPlanWatercourseAndWetlandProtectionGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Watercourse and Wetland Protection" ;
+	sh:order "8"^^xsd:decimal .
+
+regen:ProjectPlanCoBenefitsGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Co-benefits" ;
+	sh:order "9"^^xsd:decimal .
+
+regen:ProjectPlanLandTenureGroup
+	a sh:PropertyGroup ;
+	rdfs:label "LandTenure" ;
+	sh:order "10"^^xsd:decimal .
+
+regen:ProjectPlanPermanenceGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Permanence" ;
+	sh:order "11"^^xsd:decimal .
+
+regen:ProjectPlanLeakageGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Leakage" ;
+	sh:order "12"^^xsd:decimal .
+
+regen:ProjectPlanDataPrivacyGroup
+	a sh:PropertyGroup ;
+	rdfs:label "Data Privacy" ;
+	sh:order "13"^^xsd:decimal .
+
+# Classes
+
+regen:CreditClass
+    rdf:type rdfs:Class ;
+    rdfs:label "Credit Class" ;
+    rdfs:subClassOf rdfs:Resource .

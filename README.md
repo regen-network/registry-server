@@ -51,6 +51,12 @@ yarn test
 Right now, it's using the development database.
 TODO: Use a separate testing database instead and set up new migration command.
 
+## SHACL Graphs
+
+The `schema` folder contains [SHACL](https://www.w3.org/TR/shacl/) graphs for validating data (for example, project related data).
+Eventually, we could move them to their own repo if needed.
+
+Some of these graphs will be stored too in the PostGres database in a `schema` table for client-side validation (TBD regen-network/regen-registry/issues/405).
 
 
 
