@@ -206,6 +206,7 @@ regen:ProjectSizeShape
     
 regen:GrasslandsCreditClassEligibilityShape
     a rdfs:Class, sh:NodeShape ;
+    sh:targetClass regen:ProjectPlan ;
     # Field specific to Grasslands credit class
     sh:property [
         sh:path regen:includesGrasslands ;
@@ -320,6 +321,7 @@ regen:IndividualShape
 # Shape for projects that belong to GHG focused credit class
 regen:GHGCreditClassShape
     a rdfs:Class, sh:NodeShape ;
+    sh:targetClass regen:ProjectPlan ;
     sh:property [
         sh:path regen:noEmissionsTradingPrograms ;
         sh:name "Will your project participate in emission trading programs?" ;
@@ -428,7 +430,7 @@ regen:GHGCreditClassShape
 .
 
 regen:GHGRegistrationInfoShape
-    a rdfs:Class, sh:NodeShape ;  
+    a rdfs:Class, sh:NodeShape ;
     rdfs:label "Add GHG Registration Info" ;
     sh:property [
         sh:name "GHG program name" ;
@@ -464,6 +466,7 @@ regen:EnvironmentalCreditsShape
 # Shape for projects that belong to biodiversity focused credit class
 regen:BiodiversityCreditClassShape
     a rdfs:Class, sh:NodeShape ;
+    sh:targetClass regen:ProjectPlan ;
     sh:property [
         sh:path regen:plantSpecies ;
         sh:name "Choose important plant species in this habitat" ;
@@ -503,6 +506,7 @@ regen:BiodiversityCreditClassShape
 # Shape for projects that belong to credit class with co-benefits
 regen:CoBenefitsCreditClassShape
     a rdfs:Class, sh:NodeShape ;
+    sh:targetClass regen:ProjectPlan ;
     sh:property [
         sh:path regen:ecologicalOutcomes ;
         sh:name "Please indicate which ecological outcomes are evident in your project" ;
@@ -579,35 +583,30 @@ regen:ProjectPlanHabitatsAndThreathsGroup
 	rdfs:label "Habitats & Threats" ;
 	sh:order "7"^^xsd:decimal .
 
-regen:ProjectPlanWatercourseAndWetlandProtectionGroup
-	a sh:PropertyGroup ;
-	rdfs:label "Watercourse and Wetland Protection" ;
-	sh:order "8"^^xsd:decimal .
-
 regen:ProjectPlanCoBenefitsGroup
 	a sh:PropertyGroup ;
 	rdfs:label "Co-benefits" ;
-	sh:order "9"^^xsd:decimal .
+	sh:order "8"^^xsd:decimal .
 
 regen:ProjectPlanLandTenureGroup
 	a sh:PropertyGroup ;
 	rdfs:label "LandTenure" ;
-	sh:order "10"^^xsd:decimal .
+	sh:order "9"^^xsd:decimal .
 
 regen:ProjectPlanPermanenceGroup
 	a sh:PropertyGroup ;
 	rdfs:label "Permanence" ;
-	sh:order "11"^^xsd:decimal .
+	sh:order "10"^^xsd:decimal .
 
 regen:ProjectPlanLeakageGroup
 	a sh:PropertyGroup ;
 	rdfs:label "Leakage" ;
-	sh:order "12"^^xsd:decimal .
+	sh:order "11"^^xsd:decimal .
 
 regen:ProjectPlanDataPrivacyGroup
 	a sh:PropertyGroup ;
 	rdfs:label "Data Privacy" ;
-	sh:order "13"^^xsd:decimal .
+	sh:order "12"^^xsd:decimal .
 
 # Classes
 
