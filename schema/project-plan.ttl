@@ -470,7 +470,7 @@ regen:BiodiversityCreditClassShape
     sh:property [
         sh:path regen:plantSpecies ;
         sh:name "Choose important plant species in this habitat" ;
-        rdfs:label "plant species";
+        rdfs:label "plant species" ;
         sh:group regen:ProjectPlanHabitatsAndThreathsGroup ;
         sh:node dash:ListShape ;
         sh:minCount 1 ;
