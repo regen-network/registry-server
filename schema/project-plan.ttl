@@ -412,7 +412,7 @@ regen:GHGCreditClassShape
 		[
 			sh:property [
                 sh:path regen:permanenceRequirements ;
-                sh:hasValue "Register a covenant on the land from the Project Registration until the end of the 25-year permanence period."  ;
+                sh:hasValue "Register a covenant on the land from the Project Registration until the end of the 25-year permanence period." ;
             ] ;
 			sh:property [
                 sh:path regen:covenantEvidence ;
