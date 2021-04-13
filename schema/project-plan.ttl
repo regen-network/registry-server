@@ -36,7 +36,7 @@ regen:ProjectPlanShape
     sh:property [
         sh:path regen:size ;
         sh:name "Size in hectares or acres" ;
-        rdfs:label "size";
+        rdfs:label "size" ;
         sh:datatype xsd:string ;
         sh:maxCount 1 ;
         sh:minCount 1 ;
@@ -149,7 +149,7 @@ regen:ProjectPlanShape
         sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:in ("De Minimis" "Above De Minimis")
+        sh:in ("De Minimis" "Above De Minimis") ;
     ] ;
     sh:xone (
 		[
@@ -398,7 +398,7 @@ regen:GHGCreditClassShape
         sh:description "Regen Registry requires a 25-year permanence period." ;
         sh:group regen:ProjectPlanPermanenceGroup ;
         sh:datatype xsd:string ;
-        sh:in ("Allocate an additional 5% of each credit issuance (in addition to the Buffer Pool) to a dedicated Permanence Reversal Buffer." "Register a covenant on the land from the Project Registration until the end of the 25-year permanence period.")  ;
+        sh:in ("Allocate an additional 5% of each credit issuance (in addition to the Buffer Pool) to a dedicated Permanence Reversal Buffer." "Register a covenant on the land from the Project Registration until the end of the 25-year permanence period.") ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
     ] ;
@@ -536,7 +536,7 @@ regen:CoBenefitsCreditClassShape
                     "Reduced soil erosion"
                     "Social co-benefits"
                 )
-            );
+            ) ;
         ] ;
     ] ;
 .
