@@ -1,3 +1,4 @@
+drop function if exists public.create_user_organization_if_needed;
 create or replace function public.create_user_organization_if_needed
 (
   email text,
@@ -24,6 +25,7 @@ $$ language plpgsql volatile
 set search_path
 = pg_catalog, public, pg_temp;
 
+drop function if exists public.create_user_organization;
 create or replace function public.create_user_organization(
   email text,
   name text,

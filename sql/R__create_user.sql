@@ -1,3 +1,4 @@
+drop function if exists public.really_create_user_if_needed;
 create or replace function public.really_create_user_if_needed(
   user_email text,
   name text,
@@ -90,6 +91,7 @@ begin
 end;
 $$ language plpgsql volatile set search_path to pg_catalog, public, pg_temp;
 
+drop function if exists private.really_create_user_if_needed;
 create or replace function private.really_create_user_if_needed(
   email text,
   name text,
