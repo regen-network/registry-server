@@ -37,7 +37,6 @@ regen:ProjectPlanShape
         sh:path regen:size ;
         sh:name "Size in hectares or acres" ;
         rdfs:label "size" ;
-        sh:datatype xsd:string ;
         sh:maxCount 1 ;
         sh:minCount 1 ;
         sh:group regen:ProjectPlanBasicInfoGroup ;
@@ -574,12 +573,12 @@ regen:ProjectPlanEligibilityGroup
 
 regen:ProjectPlanEligibilityLandUseHistoryGroup
 	a sh:PropertyGroup ;
-	rdfs:label "EligibilityLandUseHistory" ;
+	rdfs:label "Eligibility Land Use History" ;
 	sh:order "3"^^xsd:decimal .
 
 regen:ProjectPlanEligibilityComplianceGroup
 	a sh:PropertyGroup ;
-	rdfs:label "EligibilityCompliance" ;
+	rdfs:label "Eligibility Compliance" ;
 	sh:order "4"^^xsd:decimal .
 
 regen:ProjectPlanBoundariesGroup
