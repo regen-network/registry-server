@@ -26,7 +26,7 @@ regen:ProjectPlanShape
         sh:group regen:ProjectPlanCreditClassGroup ;
     ] ;
     sh:property [
-        sh:path regen:name ;
+        sh:path schema:name ;
         sh:name "Project name" ;
         rdfs:label "project name" ;
         sh:description "This is the name of the farm, ranch, property, or conservation project." ;
