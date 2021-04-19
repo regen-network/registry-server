@@ -6,6 +6,8 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix regen: <http://regen.network/> .
 @prefix geojson: <https://purl.org/geojson/vocab#> .
+@prefix qudt_unit: <http://qudt.org/1.1/vocab/unit#> .
+@prefix qudt: <http://qudt.org/1.1/schema/qudt#> .
 
 # Node and Property Shapes
 
@@ -199,17 +201,17 @@ regen:ProjectSizeShape
     a rdfs:Class, sh:NodeShape ;
     rdfs:label "Size in hectares or acres" ;
     sh:property [
-        sh:path regen:size ;
-        sh:datatype xsd:decimal ;
-        sh:maxCount 1 ;
+        sh:path qudt:numericValue ;
+        sh:datatype xsd:double ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
     ] ;
     sh:property [
-        sh:path regen:sizeUnit ;
-        sh:datatype xsd:string ;
-        sh:maxCount 1 ;
+        sh:path qudt:unit ;
+        sh:datatype qudt:unit ;
+        sh:in ( qudt_unit:HA qudt_unit:AC ) ;
         sh:minCount 1 ;
-        sh:in ( "hectares" "acres" ) ;
+        sh:maxCount 1 ;
     ] ;
 .
     
