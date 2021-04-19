@@ -57,8 +57,8 @@ regen:ProjectPlanShape
         rdfs:label "land use prior to regenerative practices" ;
         sh:property [
             sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
-            sh:datatype xsd:string ;
-            sh:in ("Cropland" "Traditional Grazing" "Natural ecosystem, unmanaged") ;
+            sh:nodeKind sh:IRI ;
+            sh:in (regen:Cropland regen:TraditionalGrazing regen:NaturalEcosystemUnmanaged) ;
             sh:minCount 1 ;
             sh:maxCount 3 ;
         ] ;
@@ -246,8 +246,8 @@ regen:GrasslandsCreditClassRegenerativePracticesShape
         [
             sh:property [
                 sh:path regen:regenerativePracticeName ;
-                sh:datatype xsd:string ;
-                sh:in ("Rotational Grazing" "High Density Grazing" "Residue Grazing") ;
+                sh:nodeKind sh:IRI ;
+                sh:in (regen:RotationalGrazing regen:HighDensityGrazing regen:ResidueGrazing) ;
                 sh:minCount 1 ;
             ] ;
         ]
@@ -271,7 +271,7 @@ regen:OrganizationShape
     a sh:NodeShape ;
     rdfs:label "Add Organization" ;
     sh:property [
-        sh:path regen:legalName ;
+        sh:path schema:legalName ;
         sh:datatype xsd:string ;
         sh:name "Organization legal name" ;
         sh:description "This is the name of the farm, ranch, cooperative, non-profit, or other organization." ;
@@ -279,7 +279,7 @@ regen:OrganizationShape
         sh:maxCount 1 ;
     ] ;
     sh:property [
-        sh:path regen:organizationLocation ;
+        sh:path schema:location ;
         sh:name "Organization location" ;
         sh:description "This address is used for issuing credits. If you choose to show this entity on the project page, only city, state/province, and country will be displayed. " ;
         sh:minCount 1 ;
@@ -295,13 +295,19 @@ regen:OrganizationShape
         sh:maxCount 1 ;
     ] ;
     sh:property [
-        sh:path regen:responsiblePersonRole ;
+        sh:path regen:role ;
         sh:datatype xsd:string ;
         sh:name "Responsible person’s role at organization" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
     ] ;
-    sh:property regen:Email ;
+    sh:property [
+        sh:path schema:email ;
+        sh:name "Email address" ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
 .
 
 regen:IndividualShape
@@ -309,22 +315,28 @@ regen:IndividualShape
     sh:targetClass regen:Individual ;
     rdfs:label "Add Individual" ;
     sh:property [
-        sh:path regen:fullName ;
+        sh:path schema:name ;
         sh:datatype xsd:string ;
         sh:name "Full name" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
     ] ;
     sh:property [
-        sh:path regen:role ;
+        sh:path schema:roleName ;
         sh:datatype xsd:string ;
-        sh:name "role" ;
+        sh:name "Role" ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
     ] ;
-    sh:property regen:Email ;
     sh:property [
-        sh:path regen:phoneNumber ;
+        sh:path schema:email ;
+        sh:name "Email address" ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path schema:telephone ;
         sh:datatype xsd:string ;
         sh:name "Phone number" ;
     ] 
@@ -512,8 +524,8 @@ regen:BiodiversityCreditClassShape
         sh:minCount 1 ;
         sh:property [
             sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
-            sh:datatype xsd:string ;
-            sh:in ( "Drought" "Fire" "Flood" "Pests" "Invasive species" "Biodiversity loss" ) ;
+            sh:nodeKind sh:IRI ;
+            sh:in ( regen:Drought regen:Fire regen:Flood regen:Pests regen:InvasiveSpecies regen:BiodiversityLoss ) ;
         ] ;
     ] ;
 .
@@ -532,25 +544,28 @@ regen:CoBenefitsCreditClassShape
             sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
             sh:or (
                 sh:datatype xsd:string
-                sh:in (
-                    "Above ground biomass carbon sequestration"
-                    "Extended growing season"
-                    "Improved animal biodiversity"
-                    "Improved drought resilience"
-                    "Improved ecosystems health"
-                    "Improved fire resilience"
-                    "Improved ground cover"
-                    "Improved pest resilience"
-                    "Improved plant biodiversity"
-                    "Improved soil microbe diversity"
-                    "Improved water filtration"
-                    "Improved water quality"
-                    "Indigenous rights"
-                    "Reduced chemical runoff"
-                    "Reduced flooding"
-                    "Reduced soil erosion"
-                    "Social co-benefits"
-                )
+                [
+                    sh:nodeKind sh:IRI ;
+                    sh:in (
+                        regen:AboveGroundBiomassCarbonSequestration
+                        regen:ExtendedGrowingSeason
+                        regen:ImprovedAnimalBiodiversity
+                        regen:ImprovedDroughtResilience
+                        regen:ImprovedEcosystemsHealth
+                        regen:ImprovedFireResilience
+                        regen:ImprovedGroundCover
+                        regen:ImprovedPestResilience
+                        regen:ImprovedPlantBiodiversity
+                        regen:ImprovedSoilMicrobeDiversity
+                        regen:ImprovedWaterFiltration
+                        regen:ImprovedWaterQuality
+                        regen:IndigenousRights
+                        regen:ReducedChemicalRunoff
+                        regen:ReducedFlooding
+                        regen:ReducedSoilErosion
+                        regen:SocialCoBenefits
+                    ) ;
+                ]
             ) ;
         ] ;
     ] ;
@@ -623,9 +638,130 @@ regen:ProjectPlanDataPrivacyGroup
 	rdfs:label "Data Privacy" ;
 	sh:order "12"^^xsd:decimal .
 
-# Classes
+# Other definitions that will eventually need to be
+# defined as part of regen schema and vocabulary graphs.
 
 regen:CreditClass
     rdf:type rdfs:Class ;
     rdfs:label "Credit Class" ;
     rdfs:subClassOf rdfs:Resource .
+
+# Land Use Types
+regen:Cropland
+    rdf:type regen:LandUseType ;
+    rdfs:label "Cropland" .
+
+regen:TraditionalGrazing
+    rdf:type regen:LandUseType ;
+    rdfs:label "Traditional Grazing" .
+
+regen:NaturalEcosystemUnmanaged
+    rdf:type regen:LandUseType ;
+    rdfs:label "Natural ecosystem, unmanaged" .
+
+# Regenerative Practices
+regen:RotationalGrazing
+    rdf:type regen:RegenerativePractice ;
+    rdfs:label "Rotational Grazing" .
+
+regen:HighDensityGrazing
+    rdf:type regen:RegenerativePractice ;
+    rdfs:label "High Density Grazing" .
+
+regen:ResidueGrazing
+    rdf:type regen:RegenerativePractice ;
+    rdfs:label "Residue Grazing" .
+
+# Environmental Threats
+regen:Drought
+    rdf:type regen:EnvironmentalThreat ;
+    rdfs:label "Drought" .
+
+regen:Fire
+    rdf:type regen:EnvironmentalThreat ;
+    rdfs:label "Fire" .
+
+regen:Flood
+    rdf:type regen:EnvironmentalThreat ;
+    rdfs:label "Flood" .
+
+regen:Pests
+    rdf:type regen:EnvironmentalThreat ;
+    rdfs:label "Pests" .
+
+regen:InvasiveSpecies
+    rdf:type regen:EnvironmentalThreat ;
+    rdfs:label "Invasive species" .
+
+regen:BiodiversityLoss
+    rdf:type regen:EnvironmentalThreat ;
+    rdfs:label "Biodiversity loss" .
+
+# Ecological Outcomes
+regen:AboveGroundBiomassCarbonSequestration
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Above ground biomass carbon sequestration" .
+
+regen:ExtendedGrowingSeason
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Extended growing season" .
+
+regen:ImprovedAnimalBiodiversity
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Improved animal biodiversity" .
+
+regen:ImprovedDroughtResilience
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Above ground biomass carbon sequestration" .
+
+regen:ImprovedEcosystemsHealth
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Improved ecosystems health" .
+
+regen:ImprovedFireResilience
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Improved fire resilience" .
+
+regen:ImprovedGroundCover
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Improved ground cover" .
+
+regen:ImprovedPestResilience
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Improved pest resilience" .
+
+regen:ImprovedPlantBiodiversity
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Improved plant biodiversity" .
+
+regen:ImprovedSoilMicrobeDiversity
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Improved soil microbe diversity" .
+
+regen:ImprovedWaterFiltration
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Improved water filtration" .
+
+regen:ImprovedWaterQuality
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Improved water quality" .
+
+regen:IndigenousRights
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Indigenous rights" .
+
+regen:ReducedChemicalRunoff
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Reduced chemical runoff" .
+
+regen:ReducedFlooding
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Reduced flooding" .
+
+regen:ReducedSoilErosion
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Reduced soil erosion" .
+
+regen:SocialCoBenefits
+    rdf:type regen:EcologicalOutcomes ;
+    rdfs:label "Social co-benefits" .
