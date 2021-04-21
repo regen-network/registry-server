@@ -9,8 +9,7 @@
     "declarationDir": "worker/dist",
     "lib": ["es2018", "esnext.asynciterable"],
     "target": "es2018",
-    "module": "commonjs",
-    "types": ["node", "jest"]
+    "module": "commonjs"
   },
   "include": ["worker/tasks"]
 }
