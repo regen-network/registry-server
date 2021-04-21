@@ -107,7 +107,7 @@ export async function createUser(
   client: PoolClient,
   email: string | null,
   name: string | null,
-  avatar: string | null,
+  image: string | null,
   sub: string | null,
   roles: string[] | null,
 ) {
@@ -123,7 +123,7 @@ export async function createUser(
         $5
       )
       `,
-    [email, name, avatar, sub, roles]
+    [email, name, image, sub, roles]
   );
   return row;
 }
@@ -132,7 +132,7 @@ export async function createUserOrganisation(
   client: PoolClient,
   email: string | null,
   name: string | null,
-  avatar: string | null,
+  image: string | null,
   orgName: string | null,
   walletAddr: string | null,
   roles: string[] | null,
@@ -152,7 +152,7 @@ export async function createUserOrganisation(
         $7
       )
       `,
-    [email, name, avatar, orgName, walletAddr, roles, orgAddress]
+    [email, name, image, orgName, walletAddr, roles, orgAddress]
   );
   return row;
 }
