@@ -1,3 +1,4 @@
+drop function if exists public.really_create_organization_if_needed;
 create or replace function public.really_create_organization_if_needed
 (
   org_name text,
@@ -30,12 +31,13 @@ $$ language plpgsql volatile
 set search_path
 to pg_catalog, public, pg_temp;
 
+drop function if exists public.really_create_organization;
 create or replace function public.really_create_organization(
   name text,
   wallet_addr text,
   owner_id uuid,
   legal_name text,
-  logo text,
+  image text,
   roles text[] default null,
   org_address jsonb default null
 ) returns organization as $$
@@ -63,16 +65,16 @@ begin
 
   -- Insert the new party corresponding to the organization
   insert into party
-    (type, name, wallet_id, roles, address_id)
+    (type, name, image, wallet_id, roles, address_id)
   values
-    ('organization', name, v_wallet.id, roles, v_address.id)
+    ('organization', name, image, v_wallet.id, roles, v_address.id)
   returning * into v_party;
 
   -- Insert the new organization
   insert into organization
-    (party_id)
+    (party_id, legal_name)
   values
-    (v_party.id)
+    (v_party.id, legal_name)
   returning * into v_org;
 
   -- Add first member (owner)

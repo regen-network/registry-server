@@ -23,7 +23,6 @@ it('creates user and party successfully', () =>
 
     expect(users).toHaveLength(1);
     expect(users[0].auth0_sub).toEqual(sub);
-    expect(users[0].image).toEqual(image);
     expect(users[0].email).toEqual(email);
 
     const { rows: parties } = await client.query(
