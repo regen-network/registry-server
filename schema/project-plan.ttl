@@ -157,34 +157,34 @@ regen:ProjectPlanShape
         sh:name "Please indicate the expected leakage related to the proposed activities" ;
         rdfs:label "expected leakage" ;
         sh:group regen:ProjectPlanLeakageGroup ;
-        sh:datatype xsd:string ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
-        sh:in ("De Minimis" "Above De Minimis") ;
-    ] ;
-    sh:xone (
-		[
-			sh:property [
-                sh:path regen:expectedLeakage ;
-                sh:hasValue "De Minimis";
-            ] ;
+        sh:node [
+            sh:xone (
+                [
+                    sh:property [
+                        sh:path regen:expectedLeakageValue ;
+                        sh:hasValue "De Minimis";
+                    ] ;
+                ]
+                [
+                    sh:property [
+                        sh:path regen:expectedLeakageValue ;
+                        sh:hasValue "Above De Minimis";
+                    ] ;
+                    sh:property [
+                        sh:path regen:explanation ;
+                        sh:name "Provide an explanation and an estimate of CO2e leakage if possible." ;
+                        sh:datatype xsd:string ;
+                        sh:minCount 1 ;
+                        sh:maxCount 1 ;
+                    ] 
+                ]
+            ) ;
         ]
-		[
-			sh:property [
-                sh:path regen:expectedLeakage ;
-                sh:hasValue "Above De Minimis";
-            ] ;
-			sh:property [
-                sh:path regen:aboveDeMinimisLeakageExplanation ;
-                sh:name "Provide an explanation and an estimate of CO2e leakage if possible." ;
-                sh:group regen:ProjectPlanLeakageGroup ;
-                sh:datatype xsd:string ;
-                sh:minCount 1 ;
-                sh:maxCount 1 ;
-            ] 
-		]
-	) ;
-        sh:property [
+    ] ;
+    
+    sh:property [
         sh:path regen:dataPrivacyAgreement ;
         sh:name "The following information is necessary to be made public by default: 1) Entity names and locations - land steward, land owner, project developer 2) MRV data - project plan, monitoring and verification reports. 3) Issuance certificate 4) Data on the ledger is public but the association data will not be public (e.g. you'll see the location on the ledger but it won't show the entity name there)" ;
         rdfs:label "agreement about data privacy" ;
@@ -231,39 +231,38 @@ regen:GrasslandsCreditClassEligibilityShape
     # Answers specific to Grasslands credit class
     sh:property [
         sh:path regen:regenerativePractices ;
+        sh:minCount 1 ;
         sh:property [
             sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
-            sh:node regen:GrasslandsCreditClassRegenerativePracticesShape ;
-            sh:minCount 1 ;
-            sh:maxCount 4 ;
+            sh:datatype regen:GrasslandsCreditClassRegenerativePracticesShape ;
         ] ;
+        sh:group regen:ProjectPlanEligibilityLandUseHistoryGroup ;
     ] ;
 .
 
 regen:GrasslandsCreditClassRegenerativePracticesShape
     a rdfs:Class, sh:NodeShape ;
-    sh:xone (
-        [
-            sh:property [
-                sh:path regen:regenerativePracticeName ;
+    sh:property [
+        sh:path regen:regenerativePracticeName ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:xone (
+            [
                 sh:nodeKind sh:IRI ;
                 sh:in (regen:RotationalGrazing regen:HighDensityGrazing regen:ResidueGrazing) ;
-                sh:minCount 1 ;
-            ] ;
-        ]
-        [
-            sh:property [
-                sh:path regen:regenerativePracticeName ;
+            ]
+            [
                 sh:datatype xsd:string ;
                 rdfs:label "Other regenerative grazing practice" ;
-                sh:minCount 1 ;
-            ] ;
-        ]
-    ) ;
+            ]
+        ) ;
+    ];
+    
     sh:property [
         sh:path regen:regenerativePracticeStartDate ;
         sh:datatype  xsd:date ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
     ] ;
 .
 
