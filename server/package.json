@@ -38,7 +38,7 @@
     "nodemailer": "^6.4.8",
     "pg": "^8.0.3",
     "postgraphile": "^4.7.0",
-    "redis": "^3.0.2",
+    "redis": "^3.1.1",
     "stripe": "^8.120.0",
     "ts-node": "^9.1.1",
     "typescript": "^3.9.5",
