@@ -1,8 +1,9 @@
+drop function if exists public.create_user_organization_if_needed;
 create or replace function public.create_user_organization_if_needed
 (
   email text,
   name text,
-  avatar text,
+  image text,
   org_name text,
   wallet_addr text,
   roles text[] default null,
@@ -14,7 +15,7 @@ declare
   v_org organization;
 begin
   v_user := public.really_create_user_if_needed
-(email, name, avatar, null, roles, null, name, updates);
+(email, name, image, null, roles, null, name, updates);
   v_org := public.really_create_organization_if_needed
 (org_name, wallet_addr, v_user.id, roles, org_address);
 
@@ -24,10 +25,11 @@ $$ language plpgsql volatile
 set search_path
 = pg_catalog, public, pg_temp;
 
+drop function if exists public.create_user_organization;
 create or replace function public.create_user_organization(
   email text,
   name text,
-  avatar text,
+  image text,
   org_name text,
   wallet_addr text,
   roles text[] default null,
@@ -38,9 +40,9 @@ declare
   v_org organization;
 begin
   v_user := public.really_create_user
-    (email, name, avatar, null, roles, null, null, false);
+    (email, name, image, null, roles, null, null, false);
   v_org := public.really_create_organization
-    (org_name, wallet_addr, v_user.id, roles, org_address);
+    (org_name, wallet_addr, v_user.id, org_name, image, roles, org_address);
 
   return v_org;
 end;
