@@ -184,7 +184,7 @@ regen:ProjectPlanShape
                     ] 
                 ]
             ) ;
-        ]
+        ] ;
     ] ;
     
     sh:property [
@@ -208,6 +208,7 @@ regen:ProjectSizeShape
         sh:datatype xsd:double ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:group regen:ProjectPlanBasicInfoGroup ;
     ] ;
     sh:property [
         sh:path qudt:unit ;
@@ -215,6 +216,7 @@ regen:ProjectSizeShape
         sh:in ( qudt_unit:HA qudt_unit:AC ) ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:group regen:ProjectPlanBasicInfoGroup ;
     ] ;
 .
     
@@ -358,68 +360,69 @@ regen:GHGCreditClassShape
         sh:group regen:ProjectPlanEligibilityComplianceGroup ;
     ] ;
     sh:property [
-        sh:path regen:hasOtherGHGPrograms ;
+        sh:path regen:otherGHGPrograms ;
         sh:name "Is your project participating in other GHG programs?" ;
         rdfs:label "participation in other ghg programs" ;
         sh:datatype xsd:boolean ;
         sh:minCount 1 ;
         sh:group regen:ProjectPlanEligibilityComplianceGroup ;
-        
+        sh:node [
+            sh:xone (
+                [   
+                    sh:property [
+                        sh:path regen:hasOtherGHGPrograms ;
+                        sh:hasValue false ;
+                    ] ;
+                ]
+                [
+                    sh:property [
+                        sh:path regen:hasOtherGHGPrograms ;
+                        sh:hasValue true ;
+                    ] ;
+                    sh:property [
+                        sh:path regen:GHGPrograms ;
+                        sh:property [
+                            sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+                            sh:node regen:GHGRegistrationInfoShape ;
+                            sh:minCount 1 ;
+                        ] ;
+                    ] ;
+                ]
+            ) ;
+        ] ;
     ] ;
-    sh:xone (
-        [
-            sh:property [
-                sh:path regen:hasOtherGHGPrograms ;
-                sh:hasValue false ;
-            ] ;
-        ]
-        [
-            sh:property [
-                sh:path regen:hasOtherGHGPrograms ;
-                sh:hasValue true ;
-            ] ;
-            sh:property [
-                sh:path regen:otherGHGPrograms ;
-                sh:property [
-                    sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
-                    sh:node regen:GHGRegistrationInfoShape ;
-                    sh:minCount 1 ;
-                ] ;
-                sh:group regen:ProjectPlanEligibilityComplianceGroup ;
-            ] ;
-        ]
-    ) ;
     sh:property [
-        sh:path regen:hasOtherGHGEnvironmentalCredits ;
+        sh:path regen:otherGHGEnvironmentalCredits ;
         sh:name "Will your project seek or receive another form of GHG environmental credits?" ;
         rdfs:label "other forms of ghg environmental credits" ;
         sh:datatype xsd:boolean ;
         sh:group regen:ProjectPlanEligibilityComplianceGroup ;
         sh:minCount 1 ;
+        sh:node [
+            sh:xone (
+                [
+                    sh:property [
+                        sh:path regen:hasOtherGHGEnvironmentalCredits ;
+                        sh:hasValue false ;
+                    ] ;
+                ]
+                [
+                    sh:property [
+                        sh:path regen:hasOtherGHGEnvironmentalCredits ;
+                        sh:hasValue true ;
+                    ] ;
+                    sh:property [
+                        sh:path regen:GHGEnvironmentalCredits ;
+                        sh:property [
+                            sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+                            sh:node regen:EnvironmentalCreditsShape ;
+                            sh:minCount 1 ;
+                        ] ;
+                    ] ;
+                ]
+            ) ;
+        ] ;
     ] ;
-    sh:xone (
-        [
-            sh:property [
-                sh:path regen:hasOtherGHGEnvironmentalCredits ;
-                sh:hasValue false ;
-            ] ;
-        ]
-        [
-            sh:property [
-                sh:path regen:hasOtherGHGEnvironmentalCredits ;
-                sh:hasValue true ;
-            ] ;
-            sh:property [
-                sh:path regen:otherGHGEnvironmentalCredits ;
-                sh:property [
-                    sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
-                    sh:node regen:EnvironmentalCreditsShape ;
-                    sh:minCount 1 ;
-                ] ;
-                sh:group regen:ProjectPlanEligibilityComplianceGroup ;
-            ] ;
-        ]
-    ) ;
     sh:property [
         sh:path regen:permanenceRequirements ;
         sh:name "How will the project comply with permanence requirements?" ;
@@ -430,32 +433,34 @@ regen:GHGCreditClassShape
         sh:in ("Allocate an additional 5% of each credit issuance (in addition to the Buffer Pool) to a dedicated Permanence Reversal Buffer." "Register a covenant on the land from the Project Registration until the end of the 25-year permanence period.") ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
+        sh:node [
+            sh:xone (
+                [
+                    sh:property [
+                        sh:path regen:permanenceRequirementsValue ;
+                        sh:hasValue "Allocate an additional 5% of each credit issuance (in addition to the Buffer Pool) to a dedicated Permanence Reversal Buffer."  ;
+                    ] ;
+                ]
+                [
+                    sh:property [
+                        sh:path regen:permanenceRequirementsValue ;
+                        sh:hasValue "Register a covenant on the land from the Project Registration until the end of the 25-year permanence period." ;
+                    ] ;
+                    sh:property [
+                        sh:path regen:covenantEvidence ;
+                        sh:name "Upload evidence of covenant" ;
+                        rdfs:label "covenant evidence" ;
+                        sh:description "You may upload a jpg, png, .doc, or pdf." ;
+                        sh:group regen:ProjectPlanPermanenceGroup ;
+                        sh:datatype xsd:string ;
+                        sh:pattern ".pdf$|.doc$|.jpeg$|.jpg$|.png$" ;
+                        sh:minCount 1 ;
+                        sh:maxCount 1 ;
+                    ] 
+                ]
+            ) ;
+        ] ;
     ] ;
-    sh:xone (
-		[
-			sh:property [
-                sh:path regen:permanenceRequirements ;
-                sh:hasValue "Allocate an additional 5% of each credit issuance (in addition to the Buffer Pool) to a dedicated Permanence Reversal Buffer."  ;
-            ] ;
-        ]
-		[
-			sh:property [
-                sh:path regen:permanenceRequirements ;
-                sh:hasValue "Register a covenant on the land from the Project Registration until the end of the 25-year permanence period." ;
-            ] ;
-			sh:property [
-                sh:path regen:covenantEvidence ;
-                sh:name "Upload evidence of covenant" ;
-                rdfs:label "covenant evidence" ;
-                sh:description "You may upload a jpg, png, .doc, or pdf." ;
-                sh:group regen:ProjectPlanPermanenceGroup ;
-                sh:datatype xsd:string ;
-                sh:pattern ".pdf$|.doc$|.jpeg$|.jpg$|.png$" ;
-                sh:minCount 1 ;
-                sh:maxCount 1 ;
-            ] 
-		]
-	) ;
 .
 
 regen:GHGRegistrationInfoShape
