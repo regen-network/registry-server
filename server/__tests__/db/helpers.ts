@@ -204,6 +204,7 @@ export async function createProject(
 export async function reallyCreateOrganization(
   client: PoolClient,
   legalName: string,
+  displayName: string,
   walletAddr: string,
   ownerId: string,
   image: string,
@@ -222,10 +223,11 @@ export async function reallyCreateOrganization(
         $4,
         $5,
         $6,
-        $7
+        $7,
+        $8
       )
     `,
-    [legalName, walletAddr, ownerId, image, description, roles, orgAddress]
+    [legalName, displayName, walletAddr, ownerId, image, description, roles, orgAddress]
   );
   return row;
 }
