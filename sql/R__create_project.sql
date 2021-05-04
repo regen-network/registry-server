@@ -17,7 +17,7 @@ begin
   v_user := public.really_create_user_if_needed
 (email, name, image, null, roles, null, name, updates);
   v_org := public.really_create_organization_if_needed
-(org_name, wallet_addr, v_user.id, roles, org_address);
+(org_name, wallet_addr, v_user.id, image, null, roles, org_address);
 
 return v_org;
 end;
@@ -42,7 +42,7 @@ begin
   v_user := public.really_create_user
     (email, name, image, null, roles, null, null, false);
   v_org := public.really_create_organization
-    (org_name, wallet_addr, v_user.id, org_name, image, roles, org_address);
+    (org_name, wallet_addr, v_user.id, image, null, roles, org_address);
 
   return v_org;
 end;

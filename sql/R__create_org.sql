@@ -1,9 +1,11 @@
 drop function if exists public.really_create_organization_if_needed;
 create or replace function public.really_create_organization_if_needed
 (
-  org_name text,
+  legal_name text,
   wallet_addr text,
   owner_id uuid,
+  image text,
+  description text default null,
   roles text[] default null,
   org_address jsonb default null
 ) returns organization as $$
@@ -16,13 +18,13 @@ begin
   select *
   from party
   into v_party
-  where name = org_name and type = 'organization';
+  where name = legal_name and type = 'organization';
 
   if v_party is not null then
     select * from organization into v_org where party_id = v_party.id;
     return v_org;
   else
-    select * from public.really_create_organization(org_name, wallet_addr, owner_id, roles, org_address)
+    select * from public.really_create_organization(legal_name, wallet_addr, owner_id, image, description, roles, org_address)
     into v_org;
     return v_org;
   end if;
@@ -33,11 +35,11 @@ to pg_catalog, public, pg_temp;
 
 drop function if exists public.really_create_organization;
 create or replace function public.really_create_organization(
-  name text,
+  legal_name text,
   wallet_addr text,
   owner_id uuid,
-  legal_name text,
   image text,
+  description text default null,
   roles text[] default null,
   org_address jsonb default null
 ) returns organization as $$
@@ -65,9 +67,9 @@ begin
 
   -- Insert the new party corresponding to the organization
   insert into party
-    (type, name, image, wallet_id, roles, address_id)
+    (type, name, image, wallet_id, roles, address_id, description)
   values
-    ('organization', name, image, v_wallet.id, roles, v_address.id)
+    ('organization', legal_name, image, v_wallet.id, roles, v_address.id, description)
   returning * into v_party;
 
   -- Insert the new organization
