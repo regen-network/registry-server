@@ -450,7 +450,7 @@ regen:GHGCreditClassShape
                         sh:path regen:covenantEvidence ;
                         sh:name "Upload evidence of covenant" ;
                         rdfs:label "covenant evidence" ;
-                        sh:description "You may upload a jpg, png, .doc, or pdf." ;
+                        sh:description "You may upload a .jpg, .png, .doc, or .pdf." ;
                         sh:group regen:ProjectPlanPermanenceGroup ;
                         sh:datatype xsd:string ;
                         sh:pattern ".pdf$|.doc$|.jpeg$|.jpg$|.png$" ;
