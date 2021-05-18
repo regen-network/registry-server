@@ -155,6 +155,7 @@ regen:ProjectPageShape
     sh:minCount 1 ;
     sh:maxCount 1 ;
     sh:maxLength 500 ;
+    sh:datatype xsd:string ;
     sh:group regen:ProjectPageStoryGroup ;
   ] ;
   sh:property [
@@ -164,6 +165,7 @@ regen:ProjectPageShape
     sh:minCount 1 ;
     sh:maxCount 1 ;
     sh:maxLength 500 ;
+    sh:datatype xsd:string ;
     sh:group regen:ProjectPageStoryGroup ;
   ] ;
   sh:property [
@@ -173,6 +175,7 @@ regen:ProjectPageShape
     sh:minCount 1 ;
     sh:maxCount 1 ;
     sh:maxLength 80 ;
+    sh:datatype xsd:string ;
     sh:group regen:ProjectPageStoryGroup ;
   ] ;
   sh:property [
@@ -372,6 +375,7 @@ regen:SharePermissionShape
 regen:EntityDisplayShape-showOnProjectPage
   a sh:PropertyShape ;
   sh:path regen:showOnProjectPage ;
+  sh:datatype xsd:boolean ;
   sh:hasValue true ;
 .
 
@@ -382,6 +386,7 @@ regen:ProjectQuoteShape
     sh:name "Quote from land steward or other important stakeholder" ;
     sh:description "Choose an inspiring quote that helps others understand why this project is important. <a href=\"\">See an example»</a>" ;
     sh:maxLength 160 ;
+    sh:datatype xsd:string ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
   ] ;
@@ -390,12 +395,14 @@ regen:ProjectQuoteShape
     sh:name "Name of person quoted" ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
+    sh:datatype xsd:string ;
   ] ;
   sh:property [
     sh:path schema:jobTitle ;
     sh:name "Title of person quoted" ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
+    sh:datatype xsd:string ;
   ] ;
 .
 
