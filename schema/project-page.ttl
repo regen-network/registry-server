@@ -104,7 +104,7 @@ regen:ProjectPageShape
   # regen:landSteward and regen:projectDeveloper along with the "Roles" info.
   sh:property [
     sh:name "Choose the entities to show on the project page:" ;
-    sh:description "Showing more entities increases the salability of the project. You must show at least one entity on the project page. These entities can only be edited in the previous step. <a href=\"\">See an example»</a>" ;
+    sh:description "Showing more entities increases the salability of the project. You must show at least one entity on the project page. These entities can only be edited in the previous step." ;
     sh:group regen:ProjectPageEntityDisplayGroup ;
   ] ;
   # We should show at least one of the project stakeholders on the project page.
@@ -151,7 +151,7 @@ regen:ProjectPageShape
   sh:property [
     sh:path regen:landStory ;
     sh:name "Story of the land" ;
-    sh:description "Describe the story of this property. <a href=\"\">See an example»</a>" ;
+    sh:description "Describe the story of this property." ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
     sh:maxLength 500 ;
@@ -161,7 +161,7 @@ regen:ProjectPageShape
   sh:property [
     sh:path regen:landStewardStory ;
     sh:name "Story of the land stewards" ;
-    sh:description "Describe the story of this property. <a href=\"\">See an example»</a>" ;
+    sh:description "Describe the story of this property." ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
     sh:maxLength 500 ;
@@ -171,7 +171,7 @@ regen:ProjectPageShape
   sh:property [
     sh:path regen:landStewardStoryTitle ;
     sh:name "Land steward story title" ;
-    sh:description "In one sentence, summarize the story above of the land stewards. <a href=\"\">See an example»</a>" ;
+    sh:description "In one sentence, summarize the story above of the land stewards." ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
     sh:maxLength 80 ;
@@ -384,7 +384,7 @@ regen:ProjectQuoteShape
   sh:property [
     sh:path regen:quote ;
     sh:name "Quote from land steward or other important stakeholder" ;
-    sh:description "Choose an inspiring quote that helps others understand why this project is important. <a href=\"\">See an example»</a>" ;
+    sh:description "Choose an inspiring quote that helps others understand why this project is important." ;
     sh:maxLength 160 ;
     sh:datatype xsd:string ;
     sh:minCount 1 ;
