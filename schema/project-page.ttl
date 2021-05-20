@@ -19,7 +19,7 @@ regen:ProjectPageShape
 
   sh:property [
     sh:path regen:creditClass ;
-    sh:class regen:CreditClass;
+    sh:class regen:CreditClass ;
     sh:nodeKind sh:IRI ;
     sh:maxCount 1 ;
     sh:minCount 1 ;
