@@ -7,8 +7,8 @@ export default function imageOptimizer(): express.Router {
   let imageAdapter;
   let imageCache = null;
   
-  if (process.env.REDIS_URL) {
-    imageCache = new Keyv(process.env.REDIS_URL, { namespace: 'image' });
+  if (!!process.env.REDIS_URL) {
+    imageCache = new Keyv(process.env.REDIS_URL.toString(), { namespace: 'image' });
     // Handle DB connection errors
     imageCache.on('error', err => console.log('Redis Connection Error', err));
   }
