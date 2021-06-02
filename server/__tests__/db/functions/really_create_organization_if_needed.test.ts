@@ -12,6 +12,8 @@ const userEmail: string = 'test@user'
 const userName: string = 'orgUserName'
 const userImage: string = 'orgUserImage'
 
+// TODO: This is a strange error, might have to do with default params, but we
+// likley don't need the `if_needed` version
 xit('creates org if needed successfully', () =>
   withRootDb(async (client) => {
     // Action
