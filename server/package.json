@@ -50,7 +50,6 @@
     "build": "yarn remove-dist && tsc -b",
     "remove-dist": "shx rm -rf ./worker/dist/**",
     "watch": "yarn remove-dist && tsc --watch",
-    "compile": "tsc",
     "test": "jest"
   },
   "devDependencies": {
