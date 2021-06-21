@@ -33,6 +33,7 @@ regen:ProjectPageShape
     sh:datatype xsd:string ;
     sh:maxCount 1 ;
     sh:minCount 1 ;
+    sh:minLength 1 ;
     sh:group regen:ProjectPageBasicInfoGroup ;
   ] ;
   sh:property [
@@ -154,6 +155,7 @@ regen:ProjectPageShape
     sh:description "Describe the story of this property." ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
+    sh:minLength 1 ;
     sh:maxLength 500 ;
     sh:datatype xsd:string ;
     sh:group regen:ProjectPageStoryGroup ;
@@ -164,6 +166,7 @@ regen:ProjectPageShape
     sh:description "Describe the story of this property." ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
+    sh:minLength 1 ;
     sh:maxLength 500 ;
     sh:datatype xsd:string ;
     sh:group regen:ProjectPageStoryGroup ;
@@ -174,6 +177,7 @@ regen:ProjectPageShape
     sh:description "In one sentence, summarize the story above of the land stewards." ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
+    sh:minLength 1 ;
     sh:maxLength 80 ;
     sh:datatype xsd:string ;
     sh:group regen:ProjectPageStoryGroup ;
@@ -239,12 +243,13 @@ regen:ProjectSizeShape
     sh:datatype xsd:double ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
+    sh:minExclusive 0 ;
     sh:group regen:ProjectPageBasicInfoGroup ;
   ] ;
   sh:property [
     sh:path qudt:unit ;
     sh:datatype qudt:unit ;
-    sh:in ( qudt_unit:HA qudt_unit:AC ) ;
+    sh:in ( "http://qudt.org/1.1/vocab/unit#HA"^^qudt:unit "http://qudt.org/1.1/vocab/unit#AC"^^qudt:unit ) ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
     sh:group regen:ProjectPageBasicInfoGroup ;
@@ -386,23 +391,29 @@ regen:ProjectQuoteShape
     sh:name "Quote from land steward or other important stakeholder" ;
     sh:description "Choose an inspiring quote that helps others understand why this project is important." ;
     sh:maxLength 160 ;
+    sh:minLength 1 ;
     sh:datatype xsd:string ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
+    sh:group regen:ProjectPageStoryGroup ;
   ] ;
   sh:property [
     sh:path schema:name ;
     sh:name "Name of person quoted" ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
+    sh:minLength 1 ;
     sh:datatype xsd:string ;
+    sh:group regen:ProjectPageStoryGroup ;
   ] ;
   sh:property [
     sh:path schema:jobTitle ;
     sh:name "Title of person quoted" ;
     sh:minCount 1 ;
     sh:maxCount 1 ;
+    sh:minLength 1 ;
     sh:datatype xsd:string ;
+    sh:group regen:ProjectPageStoryGroup ;
   ] ;
 .
 
