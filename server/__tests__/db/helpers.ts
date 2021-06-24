@@ -200,3 +200,65 @@ export async function createProject(
   }
   return row;
 }
+
+export async function reallyCreateOrganization(
+  client: PoolClient,
+  legalName: string,
+  displayName: string,
+  walletAddr: string,
+  ownerId: string,
+  image: string,
+  description: string | null,
+  roles: string[] | null,
+  orgAddress: object | null,
+) {
+  const {
+    rows: [row],
+  } = await client.query(
+    `
+      select * from public.really_create_organization(
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8
+      )
+    `,
+    [legalName, displayName, walletAddr, ownerId, image, description, roles, orgAddress]
+  );
+  return row;
+}
+
+export async function reallyCreateOrganizationIfNeeded(
+  client: PoolClient,
+  legalName: string,
+  displayName: string,
+  walletAddr: string,
+  ownerId: string,
+  image: string,
+  description: string | null,
+  roles: string[] | null,
+  orgAddress: object | null,
+) {
+  const {
+    rows: [row],
+  } = await client.query(
+    `
+      select * from public.really_create_organization_if_needed(
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8
+      )
+    `,
+    [legalName, displayName, walletAddr, ownerId, image, description, roles, orgAddress]
+  );
+  return row;
+}

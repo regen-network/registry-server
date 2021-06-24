@@ -89,120 +89,120 @@ regen:ProjectPlanShape
   ] ;
 
   sh:property [
-  sh:path regen:gis ;
-  sh:name "Upload GIS data" ;
-  sh:description "<p>You may upload .shp, .kml, or .json files. See <a href=\"\">these instructions</a> for making your own with Google Maps.</p><p><i>Please note: in addition to general project boundaries, add any additional internal boundaries to define parcels, paddocks, or other strata if possible.</i></p>" ;
-  sh:group regen:ProjectPlanBoundariesGroup ;
-  sh:node dash:ListShape ;
-  sh:minCount 1 ;
-  sh:maxCount 1 ;
-  sh:property [
-    sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
-    sh:datatype xsd:string ;
-    sh:pattern ".shp$|.json$|.kml$" ;
+    sh:path regen:gis ;
+    sh:name "Upload GIS data" ;
+    sh:description "<p>You may upload .shp, .kml, or .json files. See <a href=\"\">these instructions</a> for making your own with Google Maps.</p><p><i>Please note: in addition to general project boundaries, add any additional internal boundaries to define parcels, paddocks, or other strata if possible.</i></p>" ;
+    sh:group regen:ProjectPlanBoundariesGroup ;
+    sh:node dash:ListShape ;
     sh:minCount 1 ;
-  ]
+    sh:maxCount 1 ;
+    sh:property [
+      sh:path ( [ sh:zeroOrMorePath rdf:rest ] rdf:first ) ;
+      sh:datatype xsd:string ;
+      sh:pattern ".shp$|.json$|.kml$" ;
+      sh:minCount 1 ;
+    ]
   ] ;
 
   sh:or (
-  [
-    sh:property [
-    sh:path regen:landOwner ;
-    sh:name "Land Owner" ;
-    sh:description "The individual or organization that owns this land." ;
-    sh:minCount 1 ;
-    sh:maxCount 1 ;
-    sh:xone (
-      sh:node regen:IndividualShape
-      sh:node regen:OrganizationShape
-    ) ;
-    sh:group regen:ProjectPlanRolesGroup ;
+    [
+      sh:property [
+      sh:path regen:landOwner ;
+      sh:name "Land Owner" ;
+      sh:description "The individual or organization that owns this land." ;
+      sh:minCount 1 ;
+      sh:maxCount 1 ;
+      sh:xone (
+        sh:node regen:IndividualShape
+        sh:node regen:OrganizationShape
+      ) ;
+      sh:group regen:ProjectPlanRolesGroup ;
+      ]
     ]
-  ]
-  [
-    sh:property [
-    sh:path regen:landSteward ;
-    sh:name "Land Steward" ;
-    sh:description "The individual or organization that is performing the work on the ground. This can be a farmer, rancher, conservationist, forester, fisherman, etc." ;
-    sh:minCount 1 ;
-    sh:maxCount 1 ;
-    sh:xone (
-      sh:node regen:IndividualShape
-      sh:node regen:OrganizationShape
-    ) ;
-    sh:group regen:ProjectPlanRolesGroup ;
+    [
+      sh:property [
+      sh:path regen:landSteward ;
+      sh:name "Land Steward" ;
+      sh:description "The individual or organization that is performing the work on the ground. This can be a farmer, rancher, conservationist, forester, fisherman, etc." ;
+      sh:minCount 1 ;
+      sh:maxCount 1 ;
+      sh:xone (
+        sh:node regen:IndividualShape
+        sh:node regen:OrganizationShape
+      ) ;
+      sh:group regen:ProjectPlanRolesGroup ;
+      ]
     ]
-  ]
-  [
-    sh:property [
-    sh:path regen:projectDeveloper ;
-    sh:name "Project Developer" ;
-    sh:description "The individual or organization that is in charge of managing the project and is the main point of contact with Regen Registry." ;
-    sh:minCount 1 ;
-    sh:maxCount 1 ;
-    sh:xone (
-      sh:node regen:IndividualShape
-      sh:node regen:OrganizationShape
-    ) ;
-    sh:group regen:ProjectPlanRolesGroup ;
+    [
+      sh:property [
+      sh:path regen:projectDeveloper ;
+      sh:name "Project Developer" ;
+      sh:description "The individual or organization that is in charge of managing the project and is the main point of contact with Regen Registry." ;
+      sh:minCount 1 ;
+      sh:maxCount 1 ;
+      sh:xone (
+        sh:node regen:IndividualShape
+        sh:node regen:OrganizationShape
+      ) ;
+      sh:group regen:ProjectPlanRolesGroup ;
+      ]
     ]
-  ]
   );
 
   sh:property [
-  sh:path regen:landTenureEvidence ;
-  sh:name "Upload a document attesting to your land tenure rights" ;
-  rdfs:label "land tenure evidence" ;
-  sh:description "Accepted file formats: .pdf, .doc, .jpg and .png" ;
-  sh:group regen:ProjectPlanLandTenureGroup ;
-  sh:datatype xsd:string ;
-  sh:pattern ".pdf$|.doc$|.jpeg$|.jpg$|.png$" ;
-  sh:minCount 1 ;
-  sh:maxCount 1 ;
+    sh:path regen:landTenureEvidence ;
+    sh:name "Upload a document attesting to your land tenure rights" ;
+    rdfs:label "land tenure evidence" ;
+    sh:description "Accepted file formats: .pdf, .doc, .jpg and .png" ;
+    sh:group regen:ProjectPlanLandTenureGroup ;
+    sh:datatype xsd:string ;
+    sh:pattern ".pdf$|.doc$|.jpeg$|.jpg$|.png$" ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
   ] ;
   
   sh:property [
-  sh:path regen:expectedLeakage ;
-  sh:name "Please indicate the expected leakage related to the proposed activities" ;
-  rdfs:label "expected leakage" ;
-  sh:group regen:ProjectPlanLeakageGroup ;
-  sh:minCount 1 ;
-  sh:maxCount 1 ;
-  sh:node [
-    sh:xone (
-    [
-      sh:property [
-      sh:path regen:expectedLeakageValue ;
-      sh:hasValue "De Minimis";
-      ] ;
-    ]
-    [
-      sh:property [
-      sh:path regen:expectedLeakageValue ;
-      sh:hasValue "Above De Minimis";
-      ] ;
-      sh:property [
-      sh:path regen:explanation ;
-      sh:name "Provide an explanation and an estimate of CO2e leakage if possible." ;
-      sh:datatype xsd:string ;
-      sh:minCount 1 ;
-      sh:maxCount 1 ;
-      ] 
-    ]
-    ) ;
-  ] ;
+    sh:path regen:expectedLeakage ;
+    sh:name "Please indicate the expected leakage related to the proposed activities" ;
+    rdfs:label "expected leakage" ;
+    sh:group regen:ProjectPlanLeakageGroup ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:node [
+      sh:xone (
+        [
+          sh:property [
+          sh:path regen:expectedLeakageValue ;
+          sh:hasValue "De Minimis";
+          ] ;
+        ]
+        [
+          sh:property [
+          sh:path regen:expectedLeakageValue ;
+          sh:hasValue "Above De Minimis";
+          ] ;
+          sh:property [
+          sh:path regen:explanation ;
+          sh:name "Provide an explanation and an estimate of CO2e leakage if possible." ;
+          sh:datatype xsd:string ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          ] 
+        ]
+      ) ;
+    ] ;
   ] ;
   
   sh:property [
-  sh:path regen:dataPrivacyAgreement ;
-  sh:name "The following information is necessary to be made public by default: 1) Entity names and locations - land steward, land owner, project developer 2) MRV data - project plan, monitoring and verification reports. 3) Issuance certificate 4) Data on the ledger is public but the association data will not be public (e.g. you'll see the location on the ledger but it won't show the entity name there)" ;
-  rdfs:label "agreement about data privacy" ;
-  sh:description "I agree to necessary data about my project being made available publicly, including the project plan, monitoring and verification reports, issuance certificate, and entity info" ;
-  sh:group regen:ProjectPlanDataPrivacyGroup ;
-  sh:datatype xsd:boolean ;
-  sh:minCount 1 ;
-  sh:maxCount 1 ;
-  sh:hasValue true ;
+    sh:path regen:dataPrivacyAgreement ;
+    sh:name "The following information is necessary to be made public by default: 1) Entity names and locations - land steward, land owner, project developer 2) MRV data - project plan, monitoring and verification reports. 3) Issuance certificate 4) Data on the ledger is public but the association data will not be public (e.g. you'll see the location on the ledger but it won't show the entity name there)" ;
+    rdfs:label "agreement about data privacy" ;
+    sh:description "I agree to necessary data about my project being made available publicly, including the project plan, monitoring and verification reports, issuance certificate, and entity info" ;
+    sh:group regen:ProjectPlanDataPrivacyGroup ;
+    sh:datatype xsd:boolean ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:hasValue true ;
   ] ;
 .
 
