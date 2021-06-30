@@ -1,7 +1,7 @@
 import { PoolClient } from 'pg';
 
 import { withAdminUserDb, becomeRoot, becomeUser, createProject, User, Party } from '../helpers';
-import { issueCredits, setupPools } from './issue_credits.test';
+import { issueCredits, setupPools, Distribution, Metadata } from './issue_credits.test';
 
 async function transferCredits(
   client: PoolClient,
@@ -111,7 +111,7 @@ it('transfers credits', () =>
 it('transfers credits with buffer pool and permanence reversal pool', () => 
   withAdminUserDb(async (client, user, party) => {
     const { vintageId, buyerWalletId, addressId, project } = await setup(
-      client, 1000, user, party, true,
+      client, 1000, user, party, true, true,
     );
 
     const result = await transferCredits(client, vintageId,
@@ -304,7 +304,7 @@ it('fails if not enough credits left', () =>
 it('fails if not enough credits left with buffer pool and permanence reversal pool', () => 
   withAdminUserDb(async (client, user, party) => {
     const { vintageId, buyerWalletId, addressId, project } = await setup(
-      client, 1000, user, party, true,
+      client, 1000, user, party, true, true,
     );
 
     const promise = transferCredits(client, vintageId,
@@ -318,7 +318,14 @@ it('fails if not enough credits left with buffer pool and permanence reversal po
   })
 );
 
-async function setup(client: PoolClient, units: number, user: User, party: Party, pools: boolean | undefined = false) {
+async function setup(
+  client: PoolClient,
+  units: number,
+  user: User,
+  party: Party,
+  pools: boolean | undefined = false,
+  withPools: boolean | undefined = false,
+) {
     await becomeRoot(client);
     // Create buyer
     const { rows: [buyer] } = await client.query(
@@ -336,16 +343,35 @@ async function setup(client: PoolClient, units: number, user: User, party: Party
     const addressId: string = parties[0].address_id;
 
     // Create project
-    const project = await createProject(client, 'project name', party.wallet_id);
+    const { project, creditClassVersion, methodologyVersion } = await createProject(client, 'project name', party.wallet_id);
     expect(project).not.toBeNull();
 
     if (pools) {
       await setupPools(client, project.credit_class_id);  
     }
 
-    // Issue credits 
+    // Issue credits
     await becomeUser(client, user.auth0_sub);
-    const issueResult = await issueCredits(client, project.id, units, { projectDeveloper: 0.6, landSteward: 0.4 });
+    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
+    const metadata: Metadata = {
+      'http://regen.network/bufferDistribution': {
+        'http://regen.network/bufferPool': 0.2,
+        'http://regen.network/permanenceReversalBuffer': 0.05,
+      },
+    };
+    const issueResult =  await issueCredits(
+      client,
+      project.id,
+      creditClassVersion.id,
+      creditClassVersion.created_at,
+      methodologyVersion.id,
+      methodologyVersion.created_at,
+      units,
+      distribution,
+      withPools ? metadata : null,
+      null,
+      null,
+    );
     expect(issueResult).not.toBeNull();
     expect(issueResult.issue_credits).not.toBeNull();
     const vintageId: string = issueResult.issue_credits.creditVintageId;

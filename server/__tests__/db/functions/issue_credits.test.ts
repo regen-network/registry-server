@@ -1,55 +1,91 @@
 import { PoolClient } from 'pg';
 
-import { withAdminUserDb, becomeRoot, becomeUser, createProject } from '../helpers';
+import { withAdminUserDb, becomeRoot, becomeUser, createProject, createUserOrganisation } from '../helpers';
 
-type Distribution = {
-  projectDeveloper?: number;
-  landOwner?: number;
-  landSteward?: number;
+export interface Distribution {
+  'http://regen.network/projectDeveloper'?: number;
+  'http://regen.network/landOwner'?: number;
+  'http://regen.network/landSteward'?: number;
+};
+
+export interface Metadata {
+  'http://regen.network/bufferDistribution'?: {
+    'http://regen.network/bufferPool'?: number,
+    'http://regen.network/permanenceReversalBuffer'?: number,
+  }
 };
 
 export async function issueCredits(
   client: PoolClient,
   projectId: string | null,
+  creditClassVersionId: string,
+  creditClassVersionCreatedAt: string,
+  methodologyVersionId: string,
+  methodologyVersionCreatedAt: string,
   units: number | null,
   initialDistribution: Distribution | null,
+  metadata: Metadata | null,
+  issuerId: string | null,
+  resellerId: string | null,
 ) {
   const {
     rows: [row],
   } = await client.query(
     `
       select * from public.issue_credits(
-        $1,
-        $2,
-        $3
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+
       )
       `,
-    [projectId, units, initialDistribution],
+    [
+      projectId,
+      creditClassVersionId,
+      creditClassVersionCreatedAt,
+      methodologyVersionId,
+      methodologyVersionCreatedAt,
+      units,
+      initialDistribution,
+      metadata || {},
+      issuerId || '00000000-0000-0000-0000-000000000000',
+      resellerId || '00000000-0000-0000-0000-000000000000',
+    ],
   );
   return row;
 }
 
 it('issues credits', () => 
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { projectDeveloper: 0.6, landSteward: 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
     const units: number = 1000;
 
     await becomeRoot(client);
-    const project = await createProject(client, 'project name', party.wallet_id);
+    const { project, creditClassVersion, methodologyVersion } = await createProject(client, 'project name', party.wallet_id);
     expect(project).not.toBeNull();
 
     await becomeUser(client, user.auth0_sub);
-    const result = await issueCredits(client, project.id, units, distribution);
+    const result = await issueCredits(
+      client,
+      project.id,
+      creditClassVersion.id,
+      creditClassVersion.created_at,
+      methodologyVersion.id,
+      methodologyVersion.created_at,
+      units,
+      distribution,
+      null,
+      null,
+      null,
+    );
 
     expect(result).not.toBeNull();
     expect(result.issue_credits).not.toBeNull();
     expect(result.issue_credits.creditVintageId).not.toBeNull();
     expect(result.issue_credits.accountBalances).not.toBeNull();
     expect(result.issue_credits.accountBalances).toHaveLength(2);
-    expect(result.issue_credits.accountBalances[0].name).toEqual('landSteward');
+    expect(result.issue_credits.accountBalances[0].name).toEqual('http://regen.network/landSteward');
     expect(result.issue_credits.accountBalances[0].percentage).toEqual(40);
     expect(result.issue_credits.accountBalances[0].amount).toEqual(400);
-    expect(result.issue_credits.accountBalances[1].name).toEqual('projectDeveloper');
+    expect(result.issue_credits.accountBalances[1].name).toEqual('http://regen.network/projectDeveloper');
     expect(result.issue_credits.accountBalances[1].percentage).toEqual(60);
     expect(result.issue_credits.accountBalances[1].amount).toEqual(600);
 
@@ -60,9 +96,12 @@ it('issues credits', () =>
     );
 
     expect(vintages).toHaveLength(1);
-    expect(vintages[0].credit_class_id).toEqual(project.credit_class_id);
+    expect(vintages[0].credit_class_version_id).toEqual(creditClassVersion.id);
+    expect(vintages[0].credit_class_version_created_at).toEqual(creditClassVersion.created_at);
+    expect(vintages[0].methodology_version_id).toEqual(methodologyVersion.id);
+    expect(vintages[0].methodology_version_created_at).toEqual(methodologyVersion.created_at);
     expect(vintages[0].project_id).toEqual(project.id);
-    expect(vintages[0].issuer_id).toEqual(party.wallet_id);
+    expect(vintages[0].tokenizer_id).toEqual(party.wallet_id);
     expect(parseInt(vintages[0].units)).toEqual(units);
     expect(vintages[0].initial_distribution).toEqual(distribution);
 
@@ -97,34 +136,189 @@ it('issues credits', () =>
   })
 );
 
-it('issues credits with buffer pool and permanence reversal pool', () =>
+it('issues 3rd party credits with reseller and initial issuer', () => 
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { projectDeveloper: 0.6, landSteward: 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
     const units: number = 1000;
 
     await becomeRoot(client);
-    const project = await createProject(client, 'project name', party.wallet_id);
+    const { project, creditClassVersion, methodologyVersion } = await createProject(client, 'project name', party.wallet_id);
+    expect(project).not.toBeNull();
+    const thirdPartyOrg = await createUserOrganisation(client, 'third-party@gmail.com', '3rd party person', '3rd party image', '3rd party org', '', null, {});
+    
+    await becomeUser(client, user.auth0_sub);
+    const result = await issueCredits(
+      client,
+      project.id,
+      creditClassVersion.id,
+      creditClassVersion.created_at,
+      methodologyVersion.id,
+      methodologyVersion.created_at,
+      units,
+      distribution,
+      null,
+      thirdPartyOrg.party_id,
+      party.wallet_id,
+    );
+
+    expect(result).not.toBeNull();
+    expect(result.issue_credits).not.toBeNull();
+    expect(result.issue_credits.creditVintageId).not.toBeNull();
+    expect(result.issue_credits.accountBalances).not.toBeNull();
+    expect(result.issue_credits.accountBalances).toHaveLength(1);
+    expect(result.issue_credits.accountBalances[0].name).toEqual('http://regen.network/reseller');
+    expect(result.issue_credits.accountBalances[0].percentage).toEqual(100);
+    expect(result.issue_credits.accountBalances[0].amount).toEqual(1000);
+
+    // credit vintage created
+    const { rows: vintages } = await client.query(
+      'select * from credit_vintage where id=$1',
+      [result.issue_credits.creditVintageId]
+    );
+
+    expect(vintages).toHaveLength(1);
+    expect(vintages[0].credit_class_version_id).toEqual(creditClassVersion.id);
+    expect(vintages[0].credit_class_version_created_at).toEqual(creditClassVersion.created_at);
+    expect(vintages[0].methodology_version_id).toEqual(methodologyVersion.id);
+    expect(vintages[0].methodology_version_created_at).toEqual(methodologyVersion.created_at);
+    expect(vintages[0].project_id).toEqual(project.id);
+    expect(vintages[0].tokenizer_id).toEqual(party.wallet_id);
+    expect(vintages[0].reseller_id).toEqual(party.wallet_id);
+    expect(vintages[0].issuer_id).toEqual(thirdPartyOrg.party_id);
+    expect(parseInt(vintages[0].units)).toEqual(units);
+    expect(vintages[0].initial_distribution).toEqual(distribution);
+
+    // account balances created
+    const { rows: balances } = await client.query(
+      'select * from account_balance where credit_vintage_id=$1 ORDER BY liquid_balance DESC',
+      [result.issue_credits.creditVintageId]
+    );
+
+    expect(balances).toHaveLength(1);
+    expect(balances[0].wallet_id).toEqual(party.wallet_id);
+    expect(parseFloat(balances[0].liquid_balance)).toEqual(1000);
+    expect(parseFloat(balances[0].burnt_balance)).toEqual(0);
+  })
+);
+
+it('issues 3rd party credits with reseller, initial issuer and metadata', () => 
+  withAdminUserDb(async (client, user, party) => {
+    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
+    const units: number = 1000;
+    const metadata: Metadata = {
+      'http://regen.network/bufferDistribution': {
+        'http://regen.network/bufferPool': 0.2,
+        'http://regen.network/permanenceReversalBuffer': 0.05,
+      },
+    };
+
+    await becomeRoot(client);
+    const { project, creditClassVersion, methodologyVersion } = await createProject(client, 'project name', party.wallet_id);
+    expect(project).not.toBeNull();
+    const thirdPartyOrg = await createUserOrganisation(client, 'third-party@gmail.com', '3rd party person', '3rd party image', '3rd party org', '', null, {});
+    
+    await becomeUser(client, user.auth0_sub);
+    const result = await issueCredits(
+      client,
+      project.id,
+      creditClassVersion.id,
+      creditClassVersion.created_at,
+      methodologyVersion.id,
+      methodologyVersion.created_at,
+      units,
+      distribution,
+      metadata,
+      thirdPartyOrg.party_id,
+      party.wallet_id,
+    );
+
+    expect(result).not.toBeNull();
+    expect(result.issue_credits).not.toBeNull();
+    expect(result.issue_credits.creditVintageId).not.toBeNull();
+    expect(result.issue_credits.accountBalances).not.toBeNull();
+    expect(result.issue_credits.accountBalances).toHaveLength(1);
+    expect(result.issue_credits.accountBalances[0].name).toEqual('http://regen.network/reseller');
+    expect(result.issue_credits.accountBalances[0].percentage).toEqual(100);
+    expect(result.issue_credits.accountBalances[0].amount).toEqual(1000);
+
+    // credit vintage created
+    const { rows: vintages } = await client.query(
+      'select * from credit_vintage where id=$1',
+      [result.issue_credits.creditVintageId]
+    );
+
+    expect(vintages).toHaveLength(1);
+    expect(vintages[0].credit_class_version_id).toEqual(creditClassVersion.id);
+    expect(vintages[0].credit_class_version_created_at).toEqual(creditClassVersion.created_at);
+    expect(vintages[0].methodology_version_id).toEqual(methodologyVersion.id);
+    expect(vintages[0].methodology_version_created_at).toEqual(methodologyVersion.created_at);
+    expect(vintages[0].project_id).toEqual(project.id);
+    expect(vintages[0].tokenizer_id).toEqual(party.wallet_id);
+    expect(vintages[0].reseller_id).toEqual(party.wallet_id);
+    expect(vintages[0].issuer_id).toEqual(thirdPartyOrg.party_id);
+    expect(parseInt(vintages[0].units)).toEqual(units);
+    expect(vintages[0].initial_distribution).toEqual(distribution);
+    expect(vintages[0].metadata).toEqual(metadata);
+    
+    // account balances created
+    const { rows: balances } = await client.query(
+      'select * from account_balance where credit_vintage_id=$1 ORDER BY liquid_balance DESC',
+      [result.issue_credits.creditVintageId]
+    );
+
+    expect(balances).toHaveLength(1);
+    expect(balances[0].wallet_id).toEqual(party.wallet_id);
+    expect(parseFloat(balances[0].liquid_balance)).toEqual(1000);
+    expect(parseFloat(balances[0].burnt_balance)).toEqual(0);
+  })
+);
+
+it('issues credits with buffer pool and permanence reversal pool', () =>
+  withAdminUserDb(async (client, user, party) => {
+    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
+    const metadata: Metadata = {
+      'http://regen.network/bufferDistribution': {
+        'http://regen.network/bufferPool': 0.2,
+        'http://regen.network/permanenceReversalBuffer': 0.05,
+      },
+    };
+    const units: number = 1000;
+
+    await becomeRoot(client);
+    const { project, creditClassVersion, methodologyVersion } = await createProject(client, 'project name', party.wallet_id);
     expect(project).not.toBeNull();
     await setupPools(client, project.credit_class_id);
 
     await becomeUser(client, user.auth0_sub);
-    const result = await issueCredits(client, project.id, units, distribution);
+    const result = await issueCredits(
+      client,
+      project.id,
+      creditClassVersion.id,
+      creditClassVersion.created_at,
+      methodologyVersion.id,
+      methodologyVersion.created_at,
+      units,
+      distribution,
+      metadata,
+      null,
+      null,
+    );
 
     expect(result).not.toBeNull();
     expect(result.issue_credits).not.toBeNull();
     expect(result.issue_credits.creditVintageId).not.toBeNull();
     expect(result.issue_credits.accountBalances).not.toBeNull();
     expect(result.issue_credits.accountBalances).toHaveLength(4);
-    expect(result.issue_credits.accountBalances[0].name).toEqual('bufferPool');
+    expect(result.issue_credits.accountBalances[0].name).toEqual('http://regen.network/bufferPool');
     expect(result.issue_credits.accountBalances[0].percentage).toEqual(20);
     expect(result.issue_credits.accountBalances[0].amount).toEqual(200);
-    expect(result.issue_credits.accountBalances[1].name).toEqual('permanenceReversalBuffer');
+    expect(result.issue_credits.accountBalances[1].name).toEqual('http://regen.network/permanenceReversalBuffer');
     expect(result.issue_credits.accountBalances[1].percentage).toEqual(5);
     expect(result.issue_credits.accountBalances[1].amount).toEqual(50);
-    expect(result.issue_credits.accountBalances[2].name).toEqual('landSteward');
+    expect(result.issue_credits.accountBalances[2].name).toEqual('http://regen.network/landSteward');
     expect(result.issue_credits.accountBalances[2].percentage).toEqual(30);
     expect(result.issue_credits.accountBalances[2].amount).toEqual(300);
-    expect(result.issue_credits.accountBalances[3].name).toEqual('projectDeveloper');
+    expect(result.issue_credits.accountBalances[3].name).toEqual('http://regen.network/projectDeveloper');
     expect(result.issue_credits.accountBalances[3].percentage).toEqual(45);
     expect(result.issue_credits.accountBalances[3].amount).toEqual(450);
 
@@ -135,11 +329,15 @@ it('issues credits with buffer pool and permanence reversal pool', () =>
     );
 
     expect(vintages).toHaveLength(1);
-    expect(vintages[0].credit_class_id).toEqual(project.credit_class_id);
+    expect(vintages[0].credit_class_version_id).toEqual(creditClassVersion.id);
+    expect(vintages[0].credit_class_version_created_at).toEqual(creditClassVersion.created_at);
+    expect(vintages[0].methodology_version_id).toEqual(methodologyVersion.id);
+    expect(vintages[0].methodology_version_created_at).toEqual(methodologyVersion.created_at);
     expect(vintages[0].project_id).toEqual(project.id);
-    expect(vintages[0].issuer_id).toEqual(party.wallet_id);
+    expect(vintages[0].tokenizer_id).toEqual(party.wallet_id);
     expect(parseInt(vintages[0].units)).toEqual(units);
     expect(vintages[0].initial_distribution).toEqual(distribution);
+    expect(vintages[0].metadata).toEqual(metadata);
 
     // account balances created
     const { rows: balances } = await client.query(
@@ -199,15 +397,27 @@ it('issues credits with buffer pool and permanence reversal pool', () =>
 
 it('fails if sum of initial distribution not equal to 100%', () =>
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { projectDeveloper: 0.6, landSteward: 0.5 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.5 };
     const units: number = 1000;
 
     await becomeRoot(client);
-    const project = await createProject(client, 'project name', party.wallet_id);
+    const { project, creditClassVersion, methodologyVersion } = await createProject(client, 'project name', party.wallet_id);
     expect(project).not.toBeNull();
 
     await becomeUser(client, user.auth0_sub);
-    const promise = issueCredits(client, project.id, units, distribution);
+    const promise = issueCredits(
+      client,
+      project.id,
+      creditClassVersion.id,
+      creditClassVersion.created_at,
+      methodologyVersion.id,
+      methodologyVersion.created_at,
+      units,
+      distribution,
+      null,
+      null,
+      null,
+    );
 
     await expect(promise).rejects.toMatchInlineSnapshot(
       `[error: Sum of ownership breakdown not equal to 100]`
@@ -218,14 +428,26 @@ it('fails if sum of initial distribution not equal to 100%', () =>
 
 it('fails if current user does not exist', () =>
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { projectDeveloper: 0.6, landSteward: 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
     const units: number = 1000;
 
     await becomeRoot(client);
-    const project = await createProject(client, 'project name', party.wallet_id);
+    const { project, creditClassVersion, methodologyVersion } = await createProject(client, 'project name', party.wallet_id);
     expect(project).not.toBeNull();
 
-    const promise = issueCredits(client, project.id, units, distribution);
+    const promise = issueCredits(
+      client,
+      project.id,
+      creditClassVersion.id,
+      creditClassVersion.created_at,
+      methodologyVersion.id,
+      methodologyVersion.created_at,
+      units,
+      distribution,
+      null,
+      null,
+      null,
+    );
 
     await expect(promise).rejects.toMatchInlineSnapshot(
       `[error: User not found]`
@@ -236,11 +458,11 @@ it('fails if current user does not exist', () =>
 
 it('fails if current user is not an admin', () => 
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { projectDeveloper: 0.6, landSteward: 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
     const units: number = 1000;
 
     await becomeRoot(client);
-    const project = await createProject(client, 'project name', party.wallet_id);
+    const { project, creditClassVersion, methodologyVersion } = await createProject(client, 'project name', party.wallet_id);
     expect(project).not.toBeNull();
     await client.query(
       'delete from admin where auth0_sub=$1',
@@ -248,7 +470,19 @@ it('fails if current user is not an admin', () =>
     );
 
     await becomeUser(client, user.auth0_sub);
-    const promise = issueCredits(client, project.id, units, distribution);
+    const promise = issueCredits(
+      client,
+      project.id,
+      creditClassVersion.id,
+      creditClassVersion.created_at,
+      methodologyVersion.id,
+      methodologyVersion.created_at,
+      units,
+      distribution,
+      null,
+      null,
+      null,
+    );
 
     await expect(promise).rejects.toMatchInlineSnapshot(
       `[error: new row violates row-level security policy for table "credit_vintage"]`
@@ -258,11 +492,11 @@ it('fails if current user is not an admin', () =>
 
 it('fails if current user does not belong to an organization', () => 
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { projectDeveloper: 0.6, landSteward: 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
     const units: number = 1000;
 
     await becomeRoot(client);
-    const project = await createProject(client, 'project name', party.wallet_id);
+    const { project, creditClassVersion, methodologyVersion } = await createProject(client, 'project name', party.wallet_id);
     expect(project).not.toBeNull();
     await client.query(
       'delete from organization_member where member_id=$1',
@@ -270,7 +504,19 @@ it('fails if current user does not belong to an organization', () =>
     );
 
     await becomeUser(client, user.auth0_sub);
-    const promise = issueCredits(client, project.id, units, distribution);
+    const promise = issueCredits(
+      client,
+      project.id,
+      creditClassVersion.id,
+      creditClassVersion.created_at,
+      methodologyVersion.id,
+      methodologyVersion.created_at,
+      units,
+      distribution,
+      null,
+      null,
+      null,
+    );
 
     await expect(promise).rejects.toMatchInlineSnapshot(
       `[error: User should be part of an organization to issue credits in the name of this organization]`
@@ -281,15 +527,27 @@ it('fails if current user does not belong to an organization', () =>
 
 it('fails if current user is not credit class issuer', () =>
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { projectDeveloper: 0.6, landSteward: 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
     const units: number = 1000;
 
     await becomeRoot(client);
-    const project = await createProject(client, 'project name', null);
+    const { project, creditClassVersion, methodologyVersion } = await createProject(client, 'project name', null);
     expect(project).not.toBeNull();
 
     await becomeUser(client, user.auth0_sub);
-    const promise = issueCredits(client, project.id, units, distribution);
+    const promise = issueCredits(
+      client,
+      project.id,
+      creditClassVersion.id,
+      creditClassVersion.created_at,
+      methodologyVersion.id,
+      methodologyVersion.created_at,
+      units,
+      distribution,
+      null,
+      null,
+      null,
+    );
 
     await expect(promise).rejects.toMatchInlineSnapshot(
       `[error: User not allowed to issue credits for this project]`
@@ -306,11 +564,6 @@ export async function setupPools(client: PoolClient, creditClassId: string) {
     await client.query(
       `select really_create_user_if_needed('bufferpool-registry@regen.network',
       'Buffer Pool', null, null, '{"administrative", "buyer"}', '{}'::jsonb, 'bufferpool', false)`
-    );
-    await client.query(
-      `insert into credit_class_version (id, name, version, date_developed, state_machine, metadata)
-      values ($1, 'credit class name', 'v1.0', now(), '{}'::jsonb, $2)`,
-      [creditClassId, { distribution: { bufferPool: 0.2, permanenceReversalBuffer: 0.05 }}]
     );
 }
 

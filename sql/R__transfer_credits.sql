@@ -90,21 +90,21 @@ begin
   from jsonb_each_text(v_initial_distribution)
     loop
       if v_value != 0 then
-        if v_key = 'projectDeveloper' then
+        if v_key = 'http://regen.network/projectDeveloper' then
           if v_developer_id is null then
             raise exception 'Project does not have any project developer' using errcode = 'NTFND';
           end if;
           v_from := v_developer_wallet_id;
         end if;
 
-        if v_key = 'landOwner' then
+        if v_key = 'http://regen.network/landOwner' then
           if v_land_owner_id is null then
             raise exception 'Project does not have any land owner' using errcode = 'NTFND';
           end if;
           v_from := v_land_owner_wallet_id;
         end if;
 
-        if v_key = 'landSteward' then
+        if v_key = 'http://regen.network/landSteward' then
           if v_steward_id is null then
             raise exception 'Project does not have any land steward' using errcode = 'NTFND';
           end if;
