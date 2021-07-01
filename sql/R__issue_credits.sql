@@ -110,8 +110,8 @@ begin
   if initial_issuer_id = uuid_nil() or reseller_id = uuid_nil() then
     -- create credit vintage
     insert into credit_vintage
-    (credit_class_version_id, credit_class_version_created_at, methodology_version_id, methodology_version_created_at, project_id, tokenizer_id, units, initial_distribution, metadata)
-    values (credit_class_version_id, credit_class_version_created_at, methodology_version_id, methodology_version_created_at, project_id, v_tokenizer_wallet_id, units, initial_distribution, metadata)
+    (start_date, end_date, credit_class_version_id, credit_class_version_created_at, methodology_version_id, methodology_version_created_at, project_id, tokenizer_id, units, initial_distribution, metadata)
+    values (start_date, end_date, credit_class_version_id, credit_class_version_created_at, methodology_version_id, methodology_version_created_at, project_id, v_tokenizer_wallet_id, units, initial_distribution, metadata)
     returning * into v_credit_vintage;
 
     -- create buffer pool and permanence reversal pool account balances
@@ -193,8 +193,8 @@ begin
   else
     -- create credit vintage
     insert into credit_vintage
-    (issuer_id, reseller_id, credit_class_version_id, credit_class_version_created_at, methodology_version_id, methodology_version_created_at, project_id, tokenizer_id, units, initial_distribution, metadata)
-    values (initial_issuer_id, reseller_id, credit_class_version_id, credit_class_version_created_at, methodology_version_id, methodology_version_created_at, project_id, v_tokenizer_wallet_id, units, initial_distribution, metadata)
+    (start_date, end_date, issuer_id, reseller_id, credit_class_version_id, credit_class_version_created_at, methodology_version_id, methodology_version_created_at, project_id, tokenizer_id, units, initial_distribution, metadata)
+    values (start_date, end_date, initial_issuer_id, reseller_id, credit_class_version_id, credit_class_version_created_at, methodology_version_id, methodology_version_created_at, project_id, v_tokenizer_wallet_id, units, initial_distribution, metadata)
     returning * into v_credit_vintage;
 
     -- issue all credits to the reseller 
