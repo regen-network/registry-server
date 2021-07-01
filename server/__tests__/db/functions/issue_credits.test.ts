@@ -33,7 +33,7 @@ export async function issueCredits(
   } = await client.query(
     `
       select * from public.issue_credits(
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+        $1, $2, $3, $4, $5, $6, $7, now(), now(), $8, $9, $10
 
       )
       `,
@@ -145,7 +145,8 @@ it('issues 3rd party credits with reseller and initial issuer', () =>
     const { project, creditClassVersion, methodologyVersion } = await createProject(client, 'project name', party.wallet_id);
     expect(project).not.toBeNull();
     const thirdPartyOrg = await createUserOrganisation(client, 'third-party@gmail.com', '3rd party person', '3rd party image', '3rd party org', '', null, {});
-    
+    expect(thirdPartyOrg).not.toBeNull();
+
     await becomeUser(client, user.auth0_sub);
     const result = await issueCredits(
       client,
