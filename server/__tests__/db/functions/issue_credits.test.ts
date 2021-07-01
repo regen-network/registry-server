@@ -3,9 +3,9 @@ import { PoolClient } from 'pg';
 import { withAdminUserDb, becomeRoot, becomeUser, createProject, createUserOrganisation } from '../helpers';
 
 export interface Distribution {
-  'http://regen.network/projectDeveloper'?: number;
-  'http://regen.network/landOwner'?: number;
-  'http://regen.network/landSteward'?: number;
+  'http://regen.network/projectDeveloperDistribution'?: number;
+  'http://regen.network/landOwnerDistribution'?: number;
+  'http://regen.network/landStewardDistribution'?: number;
 };
 
 export interface Metadata {
@@ -55,7 +55,7 @@ export async function issueCredits(
 
 it('issues credits', () => 
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloperDistribution': 0.6, 'http://regen.network/landStewardDistribution': 0.4 };
     const units: number = 1000;
 
     await becomeRoot(client);
@@ -82,10 +82,10 @@ it('issues credits', () =>
     expect(result.issue_credits.creditVintageId).not.toBeNull();
     expect(result.issue_credits.accountBalances).not.toBeNull();
     expect(result.issue_credits.accountBalances).toHaveLength(2);
-    expect(result.issue_credits.accountBalances[0].name).toEqual('http://regen.network/landSteward');
+    expect(result.issue_credits.accountBalances[0].name).toEqual('http://regen.network/landStewardDistribution');
     expect(result.issue_credits.accountBalances[0].percentage).toEqual(40);
     expect(result.issue_credits.accountBalances[0].amount).toEqual(400);
-    expect(result.issue_credits.accountBalances[1].name).toEqual('http://regen.network/projectDeveloper');
+    expect(result.issue_credits.accountBalances[1].name).toEqual('http://regen.network/projectDeveloperDistribution');
     expect(result.issue_credits.accountBalances[1].percentage).toEqual(60);
     expect(result.issue_credits.accountBalances[1].amount).toEqual(600);
 
@@ -138,7 +138,7 @@ it('issues credits', () =>
 
 it('issues 3rd party credits with reseller and initial issuer', () => 
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloperDistribution': 0.6, 'http://regen.network/landStewardDistribution': 0.4 };
     const units: number = 1000;
 
     await becomeRoot(client);
@@ -203,7 +203,7 @@ it('issues 3rd party credits with reseller and initial issuer', () =>
 
 it('issues 3rd party credits with reseller, initial issuer and metadata', () => 
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloperDistribution': 0.6, 'http://regen.network/landStewardDistribution': 0.4 };
     const units: number = 1000;
     const metadata: Metadata = {
       'http://regen.network/bufferDistribution': {
@@ -275,7 +275,7 @@ it('issues 3rd party credits with reseller, initial issuer and metadata', () =>
 
 it('issues credits with buffer pool and permanence reversal pool', () =>
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloperDistribution': 0.6, 'http://regen.network/landStewardDistribution': 0.4 };
     const metadata: Metadata = {
       'http://regen.network/bufferDistribution': {
         'http://regen.network/bufferPool': 0.2,
@@ -315,10 +315,10 @@ it('issues credits with buffer pool and permanence reversal pool', () =>
     expect(result.issue_credits.accountBalances[1].name).toEqual('http://regen.network/permanenceReversalBuffer');
     expect(result.issue_credits.accountBalances[1].percentage).toEqual(5);
     expect(result.issue_credits.accountBalances[1].amount).toEqual(50);
-    expect(result.issue_credits.accountBalances[2].name).toEqual('http://regen.network/landSteward');
+    expect(result.issue_credits.accountBalances[2].name).toEqual('http://regen.network/landStewardDistribution');
     expect(result.issue_credits.accountBalances[2].percentage).toEqual(30);
     expect(result.issue_credits.accountBalances[2].amount).toEqual(300);
-    expect(result.issue_credits.accountBalances[3].name).toEqual('http://regen.network/projectDeveloper');
+    expect(result.issue_credits.accountBalances[3].name).toEqual('http://regen.network/projectDeveloperDistribution');
     expect(result.issue_credits.accountBalances[3].percentage).toEqual(45);
     expect(result.issue_credits.accountBalances[3].amount).toEqual(450);
 
@@ -397,7 +397,7 @@ it('issues credits with buffer pool and permanence reversal pool', () =>
 
 it('fails if sum of initial distribution not equal to 100%', () =>
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.5 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloperDistribution': 0.6, 'http://regen.network/landStewardDistribution': 0.5 };
     const units: number = 1000;
 
     await becomeRoot(client);
@@ -428,7 +428,7 @@ it('fails if sum of initial distribution not equal to 100%', () =>
 
 it('fails if current user does not exist', () =>
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloperDistribution': 0.6, 'http://regen.network/landStewardDistribution': 0.4 };
     const units: number = 1000;
 
     await becomeRoot(client);
@@ -458,7 +458,7 @@ it('fails if current user does not exist', () =>
 
 it('fails if current user is not an admin', () => 
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloperDistribution': 0.6, 'http://regen.network/landStewardDistribution': 0.4 };
     const units: number = 1000;
 
     await becomeRoot(client);
@@ -492,7 +492,7 @@ it('fails if current user is not an admin', () =>
 
 it('fails if current user does not belong to an organization', () => 
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloperDistribution': 0.6, 'http://regen.network/landStewardDistribution': 0.4 };
     const units: number = 1000;
 
     await becomeRoot(client);
@@ -527,7 +527,7 @@ it('fails if current user does not belong to an organization', () =>
 
 it('fails if current user is not credit class issuer', () =>
   withAdminUserDb(async (client, user, party) => {
-    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloperDistribution': 0.6, 'http://regen.network/landStewardDistribution': 0.4 };
     const units: number = 1000;
 
     await becomeRoot(client);

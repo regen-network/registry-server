@@ -352,7 +352,7 @@ async function setup(
 
     // Issue credits
     await becomeUser(client, user.auth0_sub);
-    const distribution: Distribution = { 'http://regen.network/projectDeveloper': 0.6, 'http://regen.network/landSteward': 0.4 };
+    const distribution: Distribution = { 'http://regen.network/projectDeveloperDistribution': 0.6, 'http://regen.network/landStewardDistribution': 0.4 };
     const metadata: Metadata = {
       'http://regen.network/bufferDistribution': {
         'http://regen.network/bufferPool': 0.2,

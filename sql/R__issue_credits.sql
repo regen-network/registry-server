@@ -152,7 +152,7 @@ begin
       loop
         -- raise notice '%: %', v_key, v_value;
         if v_value != 0 then
-          if v_key = 'http://regen.network/projectDeveloper' then
+          if v_key = 'http://regen.network/projectDeveloperDistribution' then
             if v_project.developer_id is null then
               raise exception 'Project does not have any project developer' using errcode = 'NTFND';
             end if;
@@ -160,7 +160,7 @@ begin
             select wallet_id from party into v_issuee_id where id = v_project.developer_id;
           end if;
 
-          if v_key = 'http://regen.network/landOwner' then
+          if v_key = 'http://regen.network/landOwnerDistribution' then
             if v_project.land_owner_id is null then
               raise exception 'Project does not have any land owner' using errcode = 'NTFND';
             end if;
@@ -168,7 +168,7 @@ begin
             select wallet_id from party into v_issuee_id where id = v_project.land_owner_id;
           end if;
 
-          if v_key = 'http://regen.network/landSteward' then
+          if v_key = 'http://regen.network/landStewardDistribution' then
             if v_project.steward_id is null then
               raise exception 'Project does not have any land steward' using errcode = 'NTFND';
             end if;
