@@ -37,6 +37,7 @@ declare
   v_credit_class_version credit_class_version;
   v_buyer_name text;
   v_email text;
+  v_reseller_wallet_id uuid;
 begin
   -- get number of available credits left for transfer
   -- (ie credits that are still part of the project stakeholders' liquid balances)
@@ -51,7 +52,8 @@ begin
     v_developer_wallet_id,
     v_land_owner_wallet_id,
     v_steward_wallet_id,
-    v_project
+    v_project,
+    v_reseller_wallet_id
   as (
     available_credits numeric,
     initial_distribution jsonb,
@@ -62,7 +64,8 @@ begin
     developer_wallet_id uuid,
     land_owner_wallet_id uuid,
     steward_wallet_id uuid,
-    project jsonb
+    project jsonb,
+    reseller_wallet_id uuid
   );
 
   if units > v_available_credits then
@@ -84,59 +87,84 @@ begin
     returning id into v_purchase_id;
   end if;
 
-  -- update project's stakeholders' account balances and create corresponding transactions
-  for v_key, v_value in
-  select *
-  from jsonb_each_text(v_initial_distribution)
-    loop
-      if v_value != 0 then
-        if v_key = 'projectDeveloper' then
-          if v_developer_id is null then
-            raise exception 'Project does not have any project developer' using errcode = 'NTFND';
+  if v_reseller_wallet_id is null then
+    -- update project's stakeholders' account balances and create corresponding transactions
+    for v_key, v_value in
+    select *
+    from jsonb_each_text(v_initial_distribution)
+      loop
+        if v_value != 0 then
+          if v_key = 'http://regen.network/projectDeveloperDistribution' then
+            if v_developer_id is null then
+              raise exception 'Project does not have any project developer' using errcode = 'NTFND';
+            end if;
+            v_from := v_developer_wallet_id;
           end if;
-          v_from := v_developer_wallet_id;
-        end if;
 
-        if v_key = 'landOwner' then
-          if v_land_owner_id is null then
-            raise exception 'Project does not have any land owner' using errcode = 'NTFND';
+          if v_key = 'http://regen.network/landOwnerDistribution' then
+            if v_land_owner_id is null then
+              raise exception 'Project does not have any land owner' using errcode = 'NTFND';
+            end if;
+            v_from := v_land_owner_wallet_id;
           end if;
-          v_from := v_land_owner_wallet_id;
-        end if;
 
-        if v_key = 'landSteward' then
-          if v_steward_id is null then
-            raise exception 'Project does not have any land steward' using errcode = 'NTFND';
+          if v_key = 'http://regen.network/landStewardDistribution' then
+            if v_steward_id is null then
+              raise exception 'Project does not have any land steward' using errcode = 'NTFND';
+            end if;
+            v_from := v_steward_wallet_id;
           end if;
-          v_from := v_steward_wallet_id;
-        end if;
 
-        update account_balance set liquid_balance = liquid_balance - units * v_value
-        where credit_vintage_id = vintage_id and wallet_id = v_from;
+          update account_balance set liquid_balance = liquid_balance - units * v_value
+          where credit_vintage_id = vintage_id and wallet_id = v_from;
 
-        if broker_id = uuid_nil() then
-          if party_id = uuid_nil() then
-            insert into transaction
-              (from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
-            values
-              (v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
+          if broker_id = uuid_nil() then
+            if party_id = uuid_nil() then
+              insert into transaction
+                (from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
+              values
+                (v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
+            else
+              -- Use party_id as default broker_id for now since RND is doing the transfer and is the broker
+              -- TODO look for broker info at the project level instead
+              -- it might also be more consistent to have broker_id at the purchase (ie transfer) level too
+              insert into transaction
+                (broker_id, from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
+              values
+                (party_id, v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
+            end if;
           else
-            -- Use party_id as default broker_id for now since RND is doing the transfer and is the broker
-            -- TODO look for broker info at the project level instead
-            -- it might also be more consistent to have broker_id at the purchase (ie transfer) level too
             insert into transaction
               (broker_id, from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
             values
-              (party_id, v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
+              (broker_id, v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
           end if;
-        else
-          insert into transaction
-            (broker_id, from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
-          values
-            (broker_id, v_from, buyer_wallet_id, tx_state, units * v_value, credit_price, vintage_id, v_purchase_id);
         end if;
+      end loop;
+  else -- update reseller account balance
+    update account_balance set liquid_balance = liquid_balance - units
+    where credit_vintage_id = vintage_id and wallet_id = v_reseller_wallet_id;
+
+    if broker_id = uuid_nil() then
+      if party_id = uuid_nil() then
+        insert into transaction
+          (from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
+        values
+          (v_reseller_wallet_id, buyer_wallet_id, tx_state, units, credit_price, vintage_id, v_purchase_id);
+      else
+        -- Use party_id as default broker_id
+        insert into transaction
+          (broker_id, from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
+        values
+          (party_id, v_reseller_wallet_id, buyer_wallet_id, tx_state, units, credit_price, vintage_id, v_purchase_id);
       end if;
-  end loop;
+    else
+      insert into transaction
+        (broker_id, from_wallet_id, to_wallet_id, state, units, credit_price, credit_vintage_id, purchase_id)
+      values
+        (broker_id, v_reseller_wallet_id, buyer_wallet_id, tx_state, units, credit_price, vintage_id, v_purchase_id);
+    end if;
+  end if;
 
   -- create new account balance (or update) for the buyer
   insert into account_balance
