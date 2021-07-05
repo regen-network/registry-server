@@ -1,7 +1,7 @@
 import { PoolClient } from 'pg';
 
-import { withAdminUserDb, becomeRoot, becomeUser, createProject, User, Party } from '../helpers';
-import { issueCredits, setupPools } from './issue_credits.test';
+import { withAdminUserDb, becomeRoot, becomeUser, createProject, User, Party, createUserOrganisation } from '../helpers';
+import { issueCredits, setupPools, Distribution, Metadata } from './issue_credits.test';
 
 async function transferCredits(
   client: PoolClient,
@@ -31,7 +31,7 @@ async function transferCredits(
 it('transfers credits', () => 
   withAdminUserDb(async (client, user, party) => {
     const { vintageId, buyerWalletId, addressId, project } = await setup(
-      client, 1000, user, party
+      client, 1000, user, party, null, null,
     );
 
     const result = await transferCredits(client, vintageId,
@@ -108,10 +108,71 @@ it('transfers credits', () =>
   })
 );
 
+it('transfers 3rd party credits with reseller and initial issuer', () => 
+  withAdminUserDb(async (client, user, party) => {
+    await becomeRoot(client);
+    const thirdPartyOrg = await createUserOrganisation(client, 'third-party@gmail.com', '3rd party person', '3rd party image', '3rd party org', '', null, {});
+    expect(thirdPartyOrg).not.toBeNull();
+
+    await becomeUser(client, user.auth0_sub);
+    const { vintageId, buyerWalletId, addressId, project } = await setup(
+      client, 1000, user, party, thirdPartyOrg.party_id, party.wallet_id,
+    );
+
+    const result = await transferCredits(client, vintageId,
+      buyerWalletId, addressId, 100, 1, 'succeeded', false, party.id, user.id,
+    );
+
+    expect(result).not.toBeNull();
+    expect(result.transfer_credits).not.toBeNull();
+    expect(result.transfer_credits.purchaseId).not.toBeNull();
+
+    // New purchase created
+    const { rows: [purchase] } = await client.query(
+      'select * from purchase where id=$1',
+      [result.transfer_credits.purchaseId]
+    );
+    expect(purchase).not.toBeNull();
+    expect(purchase.type).toEqual('offline');
+    expect(purchase.buyer_wallet_id).toEqual(buyerWalletId);
+    expect(purchase.address_id).toEqual(addressId);
+    expect(purchase.credit_vintage_id).toEqual(vintageId);
+    expect(purchase.party_id).toEqual(party.id);
+    expect(purchase.user_id).toEqual(user.id);
+
+    // Account balances updated
+    const { rows: balances } = await client.query(
+      'select * from account_balance where credit_vintage_id=$1 ORDER BY liquid_balance DESC',
+      [vintageId]
+    );
+
+    expect(balances).toHaveLength(2);
+    expect(balances[0].wallet_id).toEqual(party.wallet_id);
+    expect(parseFloat(balances[0].liquid_balance)).toEqual(900);
+    expect(parseFloat(balances[0].burnt_balance)).toEqual(0);
+    expect(balances[1].wallet_id).toEqual(buyerWalletId);
+    expect(parseFloat(balances[1].liquid_balance)).toEqual(100);
+    expect(parseFloat(balances[1].burnt_balance)).toEqual(0);
+
+    // Transactions created
+    const { rows: txs } = await client.query(
+      'select * from transaction where purchase_id=$1 ORDER BY units DESC',
+      [purchase.id]
+    );
+
+    expect(txs).toHaveLength(1);
+    expect(txs[0].from_wallet_id).toEqual(party.wallet_id);
+    expect(txs[0].to_wallet_id).toEqual(buyerWalletId);
+    expect(parseFloat(txs[0].units)).toEqual(100);
+    expect(txs[0].credit_vintage_id).toEqual(vintageId);
+    expect(txs[0].broker_id).toEqual(party.id);
+  })
+);
+
 it('transfers credits with buffer pool and permanence reversal pool', () => 
   withAdminUserDb(async (client, user, party) => {
     const { vintageId, buyerWalletId, addressId, project } = await setup(
-      client, 1000, user, party, true,
+      client, 1000, user, party, null, null, true, true,
     );
 
     const result = await transferCredits(client, vintageId,
@@ -197,7 +258,7 @@ it('transfers credits with buffer pool and permanence reversal pool', () =>
 it('transfers credits and auto-retires', () => 
   withAdminUserDb(async (client, user, party) => {
     const { vintageId, buyerWalletId, addressId, project } = await setup(
-      client, 1000, user, party
+      client, 1000, user, party, null, null,
     );
 
     const result = await transferCredits(client, vintageId,
@@ -264,7 +325,7 @@ it('transfers credits and auto-retires', () =>
 it('fails if current user is not an admin', () => 
   withAdminUserDb(async (client, user, party) => {
     const { vintageId, buyerWalletId, addressId, project } = await setup(
-      client, 1000, user, party
+      client, 1000, user, party, null, null,
     );
 
     await becomeRoot(client);
@@ -287,7 +348,7 @@ it('fails if current user is not an admin', () =>
 it('fails if not enough credits left', () => 
   withAdminUserDb(async (client, user, party) => {
     const { vintageId, buyerWalletId, addressId, project } = await setup(
-      client, 1000, user, party
+      client, 1000, user, party, null, null,
     );
 
     const promise = transferCredits(client, vintageId,
@@ -304,7 +365,7 @@ it('fails if not enough credits left', () =>
 it('fails if not enough credits left with buffer pool and permanence reversal pool', () => 
   withAdminUserDb(async (client, user, party) => {
     const { vintageId, buyerWalletId, addressId, project } = await setup(
-      client, 1000, user, party, true,
+      client, 1000, user, party, null, null, true, true,
     );
 
     const promise = transferCredits(client, vintageId,
@@ -318,7 +379,16 @@ it('fails if not enough credits left with buffer pool and permanence reversal po
   })
 );
 
-async function setup(client: PoolClient, units: number, user: User, party: Party, pools: boolean | undefined = false) {
+async function setup(
+  client: PoolClient,
+  units: number,
+  user: User,
+  party: Party,
+  issuerId: string | null,
+  resellerId: string | null,
+  pools: boolean | undefined = false,
+  withPools: boolean | undefined = false,
+) {
     await becomeRoot(client);
     // Create buyer
     const { rows: [buyer] } = await client.query(
@@ -336,16 +406,35 @@ async function setup(client: PoolClient, units: number, user: User, party: Party
     const addressId: string = parties[0].address_id;
 
     // Create project
-    const project = await createProject(client, 'project name', party.wallet_id);
+    const { project, creditClassVersion, methodologyVersion } = await createProject(client, 'project name', party.wallet_id);
     expect(project).not.toBeNull();
 
     if (pools) {
       await setupPools(client, project.credit_class_id);  
     }
 
-    // Issue credits 
+    // Issue credits
     await becomeUser(client, user.auth0_sub);
-    const issueResult = await issueCredits(client, project.id, units, { projectDeveloper: 0.6, landSteward: 0.4 });
+    const distribution: Distribution = { 'http://regen.network/projectDeveloperDistribution': 0.6, 'http://regen.network/landStewardDistribution': 0.4 };
+    const metadata: Metadata = {
+      'http://regen.network/bufferDistribution': {
+        'http://regen.network/bufferPool': 0.2,
+        'http://regen.network/permanenceReversalBuffer': 0.05,
+      },
+    };
+    const issueResult =  await issueCredits(
+      client,
+      project.id,
+      creditClassVersion.id,
+      creditClassVersion.created_at,
+      methodologyVersion.id,
+      methodologyVersion.created_at,
+      units,
+      distribution,
+      withPools ? metadata : null,
+      issuerId || '00000000-0000-0000-0000-000000000000',
+      resellerId || '00000000-0000-0000-0000-000000000000',
+    );
     expect(issueResult).not.toBeNull();
     expect(issueResult.issue_credits).not.toBeNull();
     const vintageId: string = issueResult.issue_credits.creditVintageId;

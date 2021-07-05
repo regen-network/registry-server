@@ -166,11 +166,11 @@ export async function createProject(
   const projectDeveloper = await createUserOrganisation(client, 'project@test.com', 'project dev user', '', 'project dev org', 'project wallet address', null, { 'some': 'address' });
   const landSteward = await createUserOrganisation(client, 'steward@test.com', 'steward user', '', 'steward org', 'steward wallet address', null, { 'some': 'address' });
   const {
-    rows: [row],
+    rows: [project],
   } = await client.query(
     `
       select * from private.really_create_project(
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
       )
       `,
     [
@@ -181,12 +181,47 @@ export async function createProject(
       new Date(),
       new Date(),
       new Date(),
-      'summary description',
-      'long description',
       'image',
       100,
       'hectares',
       'active',
+    ]
+  );
+
+  // Insert credit_class_version and methodology_version
+  const {
+    rows: [creditClass],
+  } = await client.query(
+    `
+      select methodology_id from credit_class
+      where id = $1
+      `,
+    [
+      project.credit_class_id,
+    ]
+  );
+  const {
+    rows: [methodologyVersion],
+  } = await client.query(
+    `
+      insert into methodology_version (id, created_at, name, version, date_developed)
+      values ($1, $2, 'some methodology', 'v1.0', now())
+      returning *
+      `,
+    [
+      creditClass.methodology_id, new Date(),
+    ]
+  );
+  const {
+    rows: [creditClassVersion],
+  } = await client.query(
+    `
+      insert into credit_class_version (id, created_at, name, version, date_developed)
+      values ($1, $2, 'some credit class', 'v1.0', now())
+      returning *
+      `,
+    [
+      project.credit_class_id, new Date(),
     ]
   );
 
@@ -195,10 +230,10 @@ export async function createProject(
       `
         insert into credit_class_issuer (credit_class_id, issuer_id) values ($1, $2)
         `,
-      [row.credit_class_id, issuerWalletId],
+      [project.credit_class_id, issuerWalletId],
     );
   }
-  return row;
+  return { project, methodologyVersion, creditClassVersion };
 }
 
 export async function reallyCreateOrganization(

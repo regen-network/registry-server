@@ -1,13 +1,16 @@
-create or replace function get_available_credits(
+create or replace function get_available_credits
+(
   vintage_id uuid
 ) returns numeric as $$
 declare
   v_available_credits numeric;
 begin
-  select available_credits from get_available_credits_record(vintage_id)
+  select available_credits
+  from get_available_credits_record(vintage_id)
   into
     v_available_credits
-  as (
+  as
+  (
     available_credits numeric,
     initial_distribution jsonb,
     credit_class_id uuid,
@@ -22,9 +25,11 @@ begin
   return v_available_credits;
 end;
 $$ language plpgsql STABLE
-set search_path = pg_catalog, public, pg_temp;
+set search_path
+= pg_catalog, public, pg_temp;
 
-create or replace function get_available_credits_record(
+create or replace function get_available_credits_record
+(
   vintage_id uuid
 ) returns RECORD as $$
 declare
@@ -45,52 +50,62 @@ begin
 
   if v_credit_vintage.id is null then
     raise exception 'Credit vintage not found' using errcode = 'NTFND';
-  end if;
+end
+if;
 
   -- get project
   select *
-  into v_project
-  from project
-  where id = v_credit_vintage.project_id;
+into v_project
+from project
+where id = v_credit_vintage.project_id;
 
-  if v_project.id is null then
+if v_project.id is null then
     raise exception 'Project not found' using errcode = 'NTFND';
-  end if;
+end
+if;
 
   -- get wallet ids of project's stakeholders
-  select wallet_id from party into v_developer_wallet_id where id = v_project.developer_id;
-  select wallet_id from party into v_land_owner_wallet_id where id = v_project.land_owner_id;
-  select wallet_id from party into v_steward_wallet_id where id = v_project.steward_id;
+  select wallet_id
+from party
+into v_developer_wallet_id where id = v_project.developer_id;
+select wallet_id
+from party
+into v_land_owner_wallet_id where id = v_project.land_owner_id;
+select wallet_id
+from party
+into v_steward_wallet_id where id = v_project.steward_id;
 
-  select sum(liquid_balance)
-  into v_available_credits
-  from account_balance
-  where (wallet_id = v_developer_wallet_id or wallet_id = v_land_owner_wallet_id or wallet_id = v_steward_wallet_id)
+select sum(liquid_balance)
+into v_available_credits
+from account_balance
+where (wallet_id = v_developer_wallet_id or wallet_id = v_land_owner_wallet_id or wallet_id = v_steward_wallet_id)
   and credit_vintage_id = vintage_id;
 
 -- project location
-  select *
-  from address
-  into v_project_location
+select *
+from address
+into v_project_location
   where id = v_project.address_id;
 
-  select
-    v_available_credits,
-    v_credit_vintage.initial_distribution,
-    v_credit_vintage.credit_class_id,
-    v_project.developer_id, v_project.land_owner_id, v_project.steward_id,
-    v_developer_wallet_id, v_land_owner_wallet_id, v_steward_wallet_id,
-    jsonb_build_object(
+select
+  v_available_credits,
+  v_credit_vintage.initial_distribution,
+  v_credit_vintage.credit_class_id,
+  v_project.developer_id, v_project.land_owner_id, v_project.steward_id,
+  v_developer_wallet_id, v_land_owner_wallet_id, v_steward_wallet_id,
+  jsonb_build_object(
       'name', v_project.name, 
       'image', v_project.image, 
       'location', v_project_location.feature, 
       'area', v_project.area, 
       'areaUnit', v_project.area_unit,
       'metadata', v_project.metadata
-    )
-  into result_record;
+    ),
+  v_credit_vintage.reseller_id
+into result_record;
 
-  return result_record;
+return result_record;
 end;
-$$ language plpgsql volatile 
-set search_path = pg_catalog, public, pg_temp;
+$$ language plpgsql volatile
+set search_path
+= pg_catalog, public, pg_temp;
